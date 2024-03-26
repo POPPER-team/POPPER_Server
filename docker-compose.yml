@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  popper_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+      - "8443:443"
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data_container:/data/db
+volumes:
+  mongodb_data_container:
