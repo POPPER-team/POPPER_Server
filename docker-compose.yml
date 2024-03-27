@@ -1,12 +1,12 @@
 version: '3.8'
 services:
-  popper_server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:80"
-      - "8443:443"
+#  popper_server:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#      - "8443:8443"
   mongo:
     image: mongo
     ports:
@@ -24,6 +24,17 @@ services:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: Passw0rd123
     command: server --console-address ":9001" /data
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: SQL
+    ports:
+      - "3306:3306"
+  adminer:
+    image: adminer
+    ports:
+      - "8081:8081"
 volumes:
   mongodb_data_container:
   minio_storage:  #TODO Define the data volume for MinIO storage
