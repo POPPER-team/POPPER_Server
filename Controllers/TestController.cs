@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Minio;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using POPPER_Server.Dtos;
@@ -16,7 +15,6 @@ public class TestController : ControllerBase
         _database = database;
         _minioService = minioService;
     }
-    // GET
     [HttpGet("[action]")]
     public IActionResult GetUser()
     {

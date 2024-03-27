@@ -1,7 +1,5 @@
 using Minio;
-using System.IO;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Minio.DataModel.Args;
 using Minio.Exceptions;
 
