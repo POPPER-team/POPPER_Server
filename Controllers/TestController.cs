@@ -47,4 +47,16 @@ public class TestController : ControllerBase
 
         return Ok($"File {file.File.FileName} uploaded successfully.");
     }
+    [HttpGet("[action]")]
+    public async Task<IActionResult> DownloadFile(string fileName)
+    {
+        var filePath = Path.GetTempFileName();
+        await _minioService.DownloadFileAsync("test-bucker", fileName, filePath);
+        return PhysicalFile(filePath, "application/octet-stream", fileName);
+    }
+    [HttpGet("[action]")]
+    public async Task<IActionResult> ListFiles()
+    {
+        return Ok(await _minioService.GetListFilesAsync("test-bucker"));
+    }
 }
