@@ -70,6 +70,7 @@ public class TestController : ControllerBase
     [HttpGet("[action]")]
     public async Task<bool> DatabaseList()
     {
+        _mySqlConnection.Open();
         return await _mySqlConnection.PingAsync();
     }
 }
