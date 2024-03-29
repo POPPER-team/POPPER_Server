@@ -16,6 +16,10 @@ recommend [rider](https://www.jetbrains.com/rider/download/#section=linux) for d
 
 find appsettings.json in shared [onedrive](https://algebrapou-my.sharepoint.com/:f:/r/personal/fcvok_algebra_hr/Documents/POPPER?csf=1&web=1&e=kZLTLJ) folder named POPPER
 
+
+
+---
+https://github.com/killi1812/POPPER_IphoneApp
 ---
 ## Setup the environment
 
