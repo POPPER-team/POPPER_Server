@@ -3,20 +3,28 @@ using Microsoft.OpenApi.Models;
 using Minio;
 using MongoDB.Driver;
 using POPPER_Server.Services;
+using MySql.Data.MySqlClient;
+using POPPER_Server.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+//DATABASE services
 MongoClient mongoClient = new(builder.Configuration.GetConnectionString("MongoDb"));
 builder.Services.AddSingleton(mongoClient.GetDatabase("test"));
+
+builder.Services.AddScoped<MySqlConnection>(_
+    => new MySqlConnection(builder.Configuration.GetConnectionString("MySqlDb")));
+builder.Services.AddScoped<TestContext>(_
+    => new TestContext(builder.Configuration.GetConnectionString("MySqlDb")));
 
 string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';');
 IMinioClient minioClient = new MinioClient()
     .WithEndpoint(minioCS[0])
     .WithCredentials(minioCS[1], minioCS[2])
     .Build();
-builder.Services.AddSingleton<IMinioClient>(minioClient);
+builder.Services.AddSingleton(minioClient);
+//OTHER SERVICES
 builder.Services.AddScoped<IMinioService, MinioService>();
 
 builder.Services.AddControllers();
