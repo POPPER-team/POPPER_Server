@@ -3,6 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MySql.Data.MySqlClient;
 using POPPER_Server.Dtos;
+using POPPER_Server.Models;
 using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
@@ -12,13 +13,13 @@ public class TestController : ControllerBase
 {
     private readonly IMongoDatabase _userDatabase;
     private readonly IMinioService _minioService;
-    private readonly MySqlConnection _mySqlConnection;
+    private readonly TestContext _context;
 
-    public TestController(IMongoDatabase userDatabase, IMinioService minioService, MySqlConnection mySqlConnection)
+    public TestController(IMongoDatabase userDatabase, IMinioService minioService, TestContext mySqlConnection)
     {
         _userDatabase = userDatabase;
         _minioService = minioService;
-        _mySqlConnection = mySqlConnection;
+        _context = mySqlConnection;
     }
 
     [HttpGet("[action]")]
@@ -68,9 +69,8 @@ public class TestController : ControllerBase
     }
 
     [HttpGet("[action]")]
-    public async Task<bool> DatabaseList()
+    public IActionResult DatabaseList()
     {
-        _mySqlConnection.Open();
-        return await _mySqlConnection.PingAsync();
+        return Ok(_context.TableData);
     }
 }

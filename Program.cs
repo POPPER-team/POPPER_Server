@@ -4,6 +4,7 @@ using Minio;
 using MongoDB.Driver;
 using POPPER_Server.Services;
 using MySql.Data.MySqlClient;
+using POPPER_Server.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,8 @@ builder.Services.AddSingleton(mongoClient.GetDatabase("test"));
 
 builder.Services.AddScoped<MySqlConnection>(_
     => new MySqlConnection(builder.Configuration.GetConnectionString("MySqlDb")));
+builder.Services.AddScoped<TestContext>(_
+    => new TestContext(builder.Configuration.GetConnectionString("MySqlDb")));
 
 string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';');
 IMinioClient minioClient = new MinioClient()
