@@ -14,7 +14,7 @@ install docker / [docker desktop](https://www.docker.com/products/docker-desktop
 
 recommend [rider](https://www.jetbrains.com/rider/download/#section=linux) for development
 
-find appsettings.json in shared [onedrive](https://algebrapou-my.sharepoint.com/:f:/r/personal/fcvok_algebra_hr/Documents/POPPER?csf=1&web=1&e=kZLTLJ) folder named POPPER
+find appsettings.json and .env files in shared [onedrive](https://algebrapou-my.sharepoint.com/:f:/r/personal/fcvok_algebra_hr/Documents/POPPER?csf=1&web=1&e=kZLTLJ) folder named POPPER
 
 
 
