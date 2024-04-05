@@ -1,5 +1,3 @@
-using System.Reflection;
-using Microsoft.OpenApi.Models;
 using Minio;
 using MongoDB.Driver;
 using POPPER_Server.Services;
@@ -27,6 +25,7 @@ builder.Services.AddSingleton(minioClient);
 //OTHER SERVICES
 builder.Services.AddScoped<IMinioService, MinioService>();
 
+builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
