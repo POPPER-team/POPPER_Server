@@ -8,3 +8,4 @@ appsettings.json
 appsettings.Development.json
 .env
 POPPER_Server.sln.DotSettings.user
+.vscode/
