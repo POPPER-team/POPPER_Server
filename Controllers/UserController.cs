@@ -17,7 +17,7 @@ public class UserController : ControllerBase
         _userServices = userServices;
         _mapper = mapper;
     }
-
+    
     [HttpGet("[action]")]
     public async Task<IActionResult> Login([FromHeader]string username, [FromHeader]string password)
     {

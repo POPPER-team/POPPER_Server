@@ -40,7 +40,7 @@ public class UserServices : IUserServices
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-        //TODO need to add jwt tokens 
+        //TODO need to return jwt tokens 
         if (user == null) return "Nop";
         var result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
         if (result == PasswordVerificationResult.Failed) return "Nop";
@@ -49,6 +49,7 @@ public class UserServices : IUserServices
 
     public Task<string> RefreshTokenAsync(string refreshToken)
     {
+        //TODO add refresh token logic that returns a new jwt token
         throw new NotImplementedException();
     }
 
