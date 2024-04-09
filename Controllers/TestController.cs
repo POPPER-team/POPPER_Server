@@ -13,13 +13,11 @@ public class TestController : ControllerBase
 {
     private readonly IMongoDatabase _userDatabase;
     private readonly IMinioService _minioService;
-    private readonly TestContext _context;
 
-    public TestController(IMongoDatabase userDatabase, IMinioService minioService, TestContext mySqlConnection)
+    public TestController(IMongoDatabase userDatabase, IMinioService minioService)
     {
         _userDatabase = userDatabase;
         _minioService = minioService;
-        _context = mySqlConnection;
     }
 
     [HttpGet("[action]")]
@@ -66,11 +64,5 @@ public class TestController : ControllerBase
     public async Task<IActionResult> ListFiles()
     {
         return Ok(await _minioService.GetListFilesAsync("test-bucker"));
-    }
-
-    [HttpGet("[action]")]
-    public IActionResult DatabaseList()
-    {
-        return Ok(_context.TableData);
     }
 }

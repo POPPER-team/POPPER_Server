@@ -1,30 +1,45 @@
+using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Dtos;
+using POPPER_Server.Models;
+using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
 
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {
+    private readonly IUserServices _userServices;
+    private readonly IMapper _mapper;
+    public UserController(IUserServices userServices, IMapper mapper)
+    {
+        _userServices = userServices;
+        _mapper = mapper;
+    }
 
     [HttpGet("[action]")]
-    public IActionResult Login(string username, string password)
+    public async Task<IActionResult> Login([FromHeader]string username, [FromHeader]string password)
     {
-        throw new NotImplementedException();
+        return Ok(await _userServices.LoginUserAsync(username, password));
     }
     [HttpPost("[action]")]
-    public IActionResult Register([FromForm] UserDto userDto)
+    public async Task<IActionResult> Register([FromForm] UserDto userDto)
     {
-        throw new NotImplementedException();
+        User newUser = _mapper.Map<UserDto, User>(userDto);
+        await _userServices.RegisterUserAsync(newUser); 
+        return Ok();
     }
     [HttpGet("[action]/{userGuid}")]
-    public IActionResult GetUser([FromRoute] string userGuid)
+    public async Task<IActionResult> GetUser([FromRoute] string userGuid)
     {
-        throw new NotImplementedException();
+        //TODO add mapper
+        return Ok(await _userServices.GetUserAsync(userGuid));
     }
     [HttpGet("[action]")]
-    public IActionResult SearchUser(string searchString)
+    public async Task<IActionResult> SearchUser(string searchString)
     {
-        throw new NotImplementedException();
+        //TODO add mapper
+        return Ok(_mapper.Map<List<UserDto>>(await _userServices.SearchUserAsync(searchString)));
     }
 }

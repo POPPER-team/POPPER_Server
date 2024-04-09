@@ -1,3 +1,9 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using POPPER_Server.Dtos;
+using POPPER_Server.Models;
+
 namespace POPPER_Server.Services;
 
 public interface IUserServices
@@ -13,26 +19,32 @@ public interface IUserServices
     public Task<IEnumerable<User>> SearchUserAsync(string searchString);
 }
 
-public class User
-{
-}
-
 public class UserServices : IUserServices
 {
-    // private readonly DbContext _context;
-    public UserServices()
+    private readonly PopperdbContext _context;
+    private readonly IPasswordHasher<User> _passwordHasher;
+    public UserServices(PopperdbContext context, IPasswordHasher<User> passwordHasher)
     {
-        
+        _context = context;
+        _passwordHasher = passwordHasher;
     }
 
-    public Task<User> GetUserAsync(string userGuid)
+    public async Task<User> GetUserAsync(string userGuid)
     {
-        throw new NotImplementedException();
+        User user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
+        if (user == null) throw new Exception("User not found");
+        return user;
     }
 
-    Task<string> IUserServices.LoginUserAsync(string username, string password)
+    async Task<string> IUserServices.LoginUserAsync(string username, string password)
     {
-        throw new NotImplementedException();
+        User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+        //TODO need to add jwt tokens 
+        if (user == null) return "Nop";
+        var result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
+        if (result == PasswordVerificationResult.Failed) return "Nop";
+        return "Success";
     }
 
     public Task<string> RefreshTokenAsync(string refreshToken)
@@ -40,13 +52,23 @@ public class UserServices : IUserServices
         throw new NotImplementedException();
     }
 
-    public Task<User> RegisterUserAsync(User user)
+    public async Task<User> RegisterUserAsync(User user)
     {
-        throw new NotImplementedException();
+        user.Password = _passwordHasher.HashPassword(user, user.Password);
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+        return user;
     }
 
-    public Task<IEnumerable<User>> SearchUserAsync(string searchString)
+    public async Task<IEnumerable<User>> SearchUserAsync(string searchString)
     {
-        throw new NotImplementedException();
+        string s = searchString.Trim().ToLower();
+        List<User> users = await _context.Users.Where(user =>
+            user.Username.ToLower().Contains(s)
+            || user.FirstName.Contains(s)
+            || user.LastName.Contains(s)
+        ).ToListAsync();
+
+        return users;
     }
 }

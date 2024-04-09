@@ -21,6 +21,7 @@ use POPPERDB;
     
 create table if not exists Users(
     id int auto_increment,
+    Guid varchar(255) Not Null,
     FirstName varchar(255),
     LastName varchar(255),
     DateOfBirth date,
@@ -29,6 +30,7 @@ create table if not exists Users(
     Created date,
     Status varchar(255),
     WebLink varchar(255),
+--     typo
     PreferedUnits varchar(255),
     Language varchar(255),
     

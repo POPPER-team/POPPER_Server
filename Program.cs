@@ -1,7 +1,11 @@
+using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Minio;
 using MongoDB.Driver;
 using POPPER_Server.Services;
 using MySql.Data.MySqlClient;
+using POPPER_Server.Dtos;
+using POPPER_Server.Helpers;
 using POPPER_Server.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,10 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 MongoClient mongoClient = new(builder.Configuration.GetConnectionString("MongoDb"));
 builder.Services.AddSingleton(mongoClient.GetDatabase("test"));
 
-builder.Services.AddScoped<MySqlConnection>(_
-    => new MySqlConnection(builder.Configuration.GetConnectionString("MySqlDb")));
-builder.Services.AddScoped<TestContext>(_
-    => new TestContext(builder.Configuration.GetConnectionString("MySqlDb")));
+builder.Services.AddSingleton<PopperdbContext>(_
+    => new PopperdbContext(builder.Configuration.GetConnectionString("MySqlDb")));
 
 string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';');
 IMinioClient minioClient = new MinioClient()
@@ -23,8 +25,9 @@ IMinioClient minioClient = new MinioClient()
     .Build();
 builder.Services.AddSingleton(minioClient);
 //OTHER SERVICES
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddAutoMapper(typeof(Profiles));
 builder.Services.AddScoped<IMinioService, MinioService>();
-
 builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
