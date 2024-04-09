@@ -11,6 +11,7 @@ public class UserController : ControllerBase
 {
     private readonly IUserServices _userServices;
     private readonly IMapper _mapper;
+
     public UserController(IUserServices userServices, IMapper mapper)
     {
         _userServices = userServices;
@@ -32,13 +33,11 @@ public class UserController : ControllerBase
     [HttpGet("[action]/{userGuid}")]
     public async Task<IActionResult> GetUser([FromRoute] string userGuid)
     {
-        //TODO add mapper
-        return Ok(await _userServices.GetUserAsync(userGuid));
+        return Ok(_mapper.Map<UserDto>(await _userServices.GetUserAsync(userGuid)));
     }
     [HttpGet("[action]")]
     public async Task<IActionResult> SearchUser(string searchString)
     {
-        //TODO add mapper
         return Ok(_mapper.Map<List<UserDto>>(await _userServices.SearchUserAsync(searchString)));
     }
 }
