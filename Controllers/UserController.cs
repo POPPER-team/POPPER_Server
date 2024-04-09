@@ -6,7 +6,6 @@ using POPPER_Server.Models;
 using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
-
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {

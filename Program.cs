@@ -26,7 +26,7 @@ IMinioClient minioClient = new MinioClient()
 builder.Services.AddSingleton(minioClient);
 //OTHER SERVICES
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddAutoMapper(typeof(Profiles));
+builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddControllers();
