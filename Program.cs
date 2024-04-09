@@ -10,8 +10,7 @@ using POPPER_Server.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-//DATABASE services
+
 MongoClient mongoClient = new(builder.Configuration.GetConnectionString("MongoDb"));
 builder.Services.AddSingleton(mongoClient.GetDatabase("test"));
 
@@ -24,12 +23,17 @@ IMinioClient minioClient = new MinioClient()
     .WithCredentials(minioCS[1], minioCS[2])
     .Build();
 builder.Services.AddSingleton(minioClient);
-//OTHER SERVICES
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+//Services
 builder.Services.AddAutoMapper(typeof(MapperProfile));
+
+//Scoped services
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IUserServices, UserServices>();
+
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
