@@ -19,6 +19,9 @@ public interface IUserServices
     public Task<IEnumerable<User>> SearchUserAsync(string searchString);
 }
 
+/// <summary>
+/// Used for user related operations such as login, register, search and get user
+/// </summary>
 public class UserServices : IUserServices
 {
     private readonly PopperdbContext _context;
@@ -29,6 +32,11 @@ public class UserServices : IUserServices
         _passwordHasher = passwordHasher;
     }
 
+/// <summary>
+/// Retrieves a user based on the user guid.
+/// </summary>
+/// <param name="userGuid"></param>
+/// <returns>User</returns>
     public async Task<User> GetUserAsync(string userGuid)
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
@@ -36,6 +44,12 @@ public class UserServices : IUserServices
         return user;
     }
 
+    /// <summary>
+    /// Logs in a user based on the username and password
+    /// </summary>
+    /// <param name="username">User username or email</param>
+    /// <param name="password">user password in plain text it will be hashed later</param>
+    /// <returns>JWT token</returns>
     async Task<string> IUserServices.LoginUserAsync(string username, string password)
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
@@ -53,6 +67,11 @@ public class UserServices : IUserServices
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Creates a new user in the database. New user will not be logged in
+    /// </summary>
+    /// <param name="user">User to be created</param>
+    /// <returns>Newly created user </returns>
     public async Task<User> RegisterUserAsync(User user)
     {
         user.Password = _passwordHasher.HashPassword(user, user.Password);
@@ -61,6 +80,12 @@ public class UserServices : IUserServices
         return user;
     }
 
+    /// <summary>
+    /// Function that searches for users based on a search string
+    /// The search string is compared to the username, first name and last name of the user
+    /// </summary>
+    /// <param name="searchString">string to search for in username, first name or last name </param>
+    /// <returns>IEnumerable of users</returns>
     public async Task<IEnumerable<User>> SearchUserAsync(string searchString)
     {
         string s = searchString.Trim().ToLower();
