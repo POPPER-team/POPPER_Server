@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS tableData (
 -- Insert data into the table
 INSERT INTO tableData (name) VALUES ('Data 1'), ('Data 2'), ('Data 3');
 
-create database if not exists useri;
+create database if not exists POPPERDB;
        
-use useri;
+use POPPERDB;
     
     
 create table if not exists Users(
@@ -40,8 +40,10 @@ create table if not exists Following(
     id int auto_increment,
     UserID int,
     FollowingID int,
-    Primary key(id)
+    Primary key(id),
     foreign key(UserID) references Users(id),
     foreign key(FollowingID) references Users(id)
+    
+
     );  
-);
+
