@@ -25,16 +25,15 @@ public class UserController : ControllerBase
         return Ok(await _userServices.LoginUserAsync(userLoginDto.Username, userLoginDto.Password));
     }
     [HttpPost("[action]")]
-    public async Task<IActionResult> Register([FromForm] UserDto userDto)
+    public async Task<IActionResult> Register([FromForm] NewUserDto userDto)
     {
-        User newUser = _mapper.Map<UserDto, User>(userDto);
-        await _userServices.RegisterUserAsync(newUser); 
+        await _userServices.RegisterUserAsync(userDto); 
         return Ok();
     }
     [HttpGet("[action]/{userGuid}")]
     public async Task<IActionResult> GetUser([FromRoute] string userGuid)
     {
-        return Ok(_mapper.Map<UserDto>(await _userServices.GetUserAsync(userGuid)));
+        return Ok(_mapper.Map<UserDetailsDto>(await _userServices.GetUserAsync(userGuid)));
     }
     //TODO remove when we add more Authorized enpoints Now it is used for testing
     [Authorize]

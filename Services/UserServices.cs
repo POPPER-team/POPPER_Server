@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +19,7 @@ public interface IUserServices
 
     public Task<TokensDto> RefreshTokenAsync(string refreshToken);
 
-    public Task<User> RegisterUserAsync(User user);
+    public Task<User> RegisterUserAsync(NewUserDto user);
 
     public Task<IEnumerable<User>> SearchUserAsync(string searchString);
 }
@@ -31,9 +32,12 @@ public class UserServices : IUserServices
     private readonly PopperdbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IConfiguration _configuration;
+    private readonly IMapper _mapper;
 
-    public UserServices(PopperdbContext context, IPasswordHasher<User> passwordHasher, IConfiguration configuration)
+    public UserServices(PopperdbContext context, IPasswordHasher<User> passwordHasher, IConfiguration configuration,
+        IMapper mapper)
     {
+        _mapper = mapper;
         _context = context;
         _passwordHasher = passwordHasher;
         _configuration = configuration;
@@ -60,7 +64,7 @@ public class UserServices : IUserServices
     async Task<string> IUserServices.LoginUserAsync(string username, string password)
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-        
+
         if (user == null) return "User not found";
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
         if (result == PasswordVerificationResult.Failed) return "Invalid password";
@@ -90,12 +94,12 @@ public class UserServices : IUserServices
     {
         ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(refreshToken);
         string userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-        User? user = await _context.Users.FirstOrDefaultAsync(u => Equals(u.Id, userId));
+        User user = await _context.Users.FirstOrDefaultAsync(u => Equals(u.Id, userId));
         if (user == null)
         {
             throw new Exception("User not found");
         }
-        
+
         string jwtToken = GenerateJwtToken(user);
         string newRefreshToken = GenerateRefreshToken();
 
@@ -126,7 +130,8 @@ public class UserServices : IUserServices
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
         JwtSecurityToken? jwtSecurityToken = securityToken as JwtSecurityToken;
-        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+        if (jwtSecurityToken == null
+            || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
                 StringComparison.InvariantCultureIgnoreCase))
             throw new SecurityTokenException("Invalid token");
 
@@ -138,12 +143,13 @@ public class UserServices : IUserServices
     /// </summary>
     /// <param name="user">User to be created</param>
     /// <returns>Newly created user </returns>
-    public async Task<User> RegisterUserAsync(User user)
+    public async Task<User> RegisterUserAsync(NewUserDto user)
     {
-        user.Password = _passwordHasher.HashPassword(user, user.Password);
-        await _context.Users.AddAsync(user);
+        User newUser = _mapper.Map<User>(user);
+        user.Password = _passwordHasher.HashPassword(newUser, user.Password);
+        await _context.Users.AddAsync(newUser);
         await _context.SaveChangesAsync();
-        return user;
+        return newUser;
     }
 
     /// <summary>
