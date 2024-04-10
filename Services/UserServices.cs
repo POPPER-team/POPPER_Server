@@ -32,10 +32,12 @@ public class UserServices : IUserServices
 {
     private readonly PopperdbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
-    public UserServices(PopperdbContext context, IPasswordHasher<User> passwordHasher)
+    private readonly IConfiguration _configuration;
+    public UserServices(PopperdbContext context, IPasswordHasher<User> passwordHasher, IConfiguration configuration)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _configuration = configuration;
     }
     public class TokenResponse
     {
@@ -81,7 +83,7 @@ public class UserServices : IUserServices
     {
       
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes("1xvawozgzh78q2m9xpdlshegaqaspkpe"); // Replace with your secret key
+        var key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]); // Replace with your secret key
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
@@ -90,7 +92,7 @@ public class UserServices : IUserServices
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
               
             }),
-            Expires = DateTime.UtcNow.AddMinutes(15), 
+            Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(_configuration["JWT:ExpiryInDays"])), 
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
