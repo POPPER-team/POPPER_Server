@@ -14,5 +14,15 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth.ToString()))
             .ForMember(dest => dest.Password, opt => opt.Ignore());
 
+        CreateMap<NewUserDto, User>();
+        CreateMap<User, NewUserDto>();
+
+        CreateMap<UserDetailsDto, User>()
+            .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => DateTime.Parse(src.DateOfBirth)));
+        CreateMap<User, UserDetailsDto>()
+            .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth.ToString()));
+
+        CreateMap<UserLoginDto, User>();
+        CreateMap<User, UserLoginDto>();
     }
 }

@@ -2,9 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using POPPER_Server.Dtos;
@@ -18,7 +16,7 @@ public interface IUserServices
 
     public Task<string> LoginUserAsync(string username, string password);
 
-    public Task<UserServices.TokenResponse> RefreshTokenAsync(string refreshToken);
+    public Task<TokensDto> RefreshTokenAsync(string refreshToken);
 
     public Task<User> RegisterUserAsync(User user);
 
@@ -33,23 +31,19 @@ public class UserServices : IUserServices
     private readonly PopperdbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IConfiguration _configuration;
+
     public UserServices(PopperdbContext context, IPasswordHasher<User> passwordHasher, IConfiguration configuration)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _configuration = configuration;
     }
-    public class TokenResponse
-    {
-        public string JwtToken { get; set; }
-        public string RefreshToken { get; set; }
-    }
 
-/// <summary>
-/// Retrieves a user based on the user guid.
-/// </summary>
-/// <param name="userGuid"></param>
-/// <returns>User</returns>
+    /// <summary>
+    /// Retrieves a user based on the user guid.
+    /// </summary>
+    /// <param name="userGuid"></param>
+    /// <returns>User</returns>
     public async Task<User> GetUserAsync(string userGuid)
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
@@ -66,58 +60,46 @@ public class UserServices : IUserServices
     async Task<string> IUserServices.LoginUserAsync(string username, string password)
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-
-        //TODO need to return jwt tokens 
-        if (user == null) return "User not found";
-        var result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
-        if (result == PasswordVerificationResult.Failed) return "Invalid password";
-       
         
-        var jwtToken = GenerateJwtToken(user);
-
-        return jwtToken;
-
+        if (user == null) return "User not found";
+        PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
+        if (result == PasswordVerificationResult.Failed) return "Invalid password";
+        return GenerateJwtToken(user);
     }
 
     private string GenerateJwtToken(User user)
     {
-      
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]); // Replace with your secret key
-        var tokenDescriptor = new SecurityTokenDescriptor
+        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        Byte[] key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]);
+        SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-              
             }),
-            Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(_configuration["JWT:ExpiryInDays"])), 
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(_configuration["JWT:ExpiryInDays"])),
+            SigningCredentials =
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
+        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
 
-    public async Task<TokenResponse> RefreshTokenAsync(string refreshToken)
+    public async Task<TokensDto> RefreshTokenAsync(string refreshToken)
     {
-        var principal = GetPrincipalFromExpiredToken(refreshToken);
-        var userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-
-        // Retrieve the user from the database
-        var user = await _context.Users.FirstOrDefaultAsync(u => Equals(u.Id, userId));
-
+        ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(refreshToken);
+        string userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        User? user = await _context.Users.FirstOrDefaultAsync(u => Equals(u.Id, userId));
         if (user == null)
         {
             throw new Exception("User not found");
         }
         
-        // Generate a new JWT token and a new refresh token
-        var jwtToken = GenerateJwtToken(user);
+        string jwtToken = GenerateJwtToken(user);
         string newRefreshToken = GenerateRefreshToken();
 
-        // Return the new JWT token and the new refresh token
-        return new TokenResponse
+        return new TokensDto()
         {
             JwtToken = jwtToken,
             RefreshToken = newRefreshToken
@@ -126,30 +108,30 @@ public class UserServices : IUserServices
 
     private string GenerateRefreshToken()
     {
-        var randomNumber = new byte[32];
-        using var rng = RandomNumberGenerator.Create();
+        byte[] randomNumber = new byte[32];
+        using RandomNumberGenerator? rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
     }
 
     private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
-        var tokenValidationParameters = new TokenValidationParameters
+        TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = false,
             ValidateIssuer = false,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("1xvawozgzh78q2m9xpdlshegaqaspkpe")) 
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]))
         };
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
-        var jwtSecurityToken = securityToken as JwtSecurityToken;
-        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+        JwtSecurityToken? jwtSecurityToken = securityToken as JwtSecurityToken;
+        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                StringComparison.InvariantCultureIgnoreCase))
             throw new SecurityTokenException("Invalid token");
 
         return principal;
     }
-
 
     /// <summary>
     /// Creates a new user in the database. New user will not be logged in

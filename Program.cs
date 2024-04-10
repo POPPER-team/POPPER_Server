@@ -1,5 +1,4 @@
 using System.Text;
-using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -7,13 +6,10 @@ using Microsoft.OpenApi.Models;
 using Minio;
 using MongoDB.Driver;
 using POPPER_Server.Services;
-using MySql.Data.MySqlClient;
-using POPPER_Server.Dtos;
 using POPPER_Server.Helpers;
 using POPPER_Server.Models;
 
-var builder = WebApplication.CreateBuilder(args);
-
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 MongoClient mongoClient = new(builder.Configuration.GetConnectionString("MongoDb"));
 builder.Services.AddSingleton(mongoClient.GetDatabase("test"));
@@ -32,12 +28,12 @@ builder.Services.AddSingleton(minioClient);
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
 // Configure JWT security services
-var secureKey = builder.Configuration["JWT:SecureKey"];
+string? secureKey = builder.Configuration["JWT:SecureKey"];
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
-        var Key = Encoding.UTF8.GetBytes(secureKey);
+        byte[] Key = Encoding.UTF8.GetBytes(secureKey);
         o.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = false,
@@ -45,7 +41,6 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Key)
         };
     });
-
 
 //Scoped services
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -89,7 +84,7 @@ builder.Services.AddSwaggerGen(option =>
         });
 });
 
-var app = builder.Build();
+WebApplication? app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

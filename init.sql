@@ -18,34 +18,28 @@ create database if not exists POPPERDB;
        
 use POPPERDB;
     
-    
 create table if not exists Users(
     id int auto_increment,
     Guid varchar(255) Not Null,
-    FirstName varchar(255),
-    LastName varchar(255),
-    DateOfBirth date,
-    Username varchar(255),
-    Password varchar(255),
-    Created date,
-    Status varchar(255),
-    WebLink varchar(255),
---     typo
-    PreferedUnits varchar(255),
-    Language varchar(255),
-    
-    
+    FirstName varchar(255) Not Null,
+    LastName varchar(255) Not Null,
+    DateOfBirth date Not Null,
+    Username varchar(255) Not Null,
+    Password varchar(255) Not Null,
+    Created date Not Null,
+    Status varchar(255) Not Null,
+    WebLink varchar(255) Not Null,
+    PreferredUnits varchar(255) Not Null,
+    Language varchar(255) Not Null,
     Primary key(id)
     );
 
 create table if not exists Following(
     id int auto_increment,
-    UserID int,
-    FollowingID int,
+    UserID int Not Null,
+    FollowingID int Not Null,
     Primary key(id),
     foreign key(UserID) references Users(id),
     foreign key(FollowingID) references Users(id)
-    
-
     );  
 

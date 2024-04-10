@@ -19,13 +19,13 @@ public partial class User
 
     public string? Password { get; set; }
 
-    public DateTime? Created { get; set; }
+    public DateTime? Created { get; set; } = DateTime.Now;
 
     public string? Status { get; set; }
 
     public string? WebLink { get; set; }
 
-    public string? PreferedUnits { get; set; }
+    public string? PreferredUnits { get; set; }
 
     public string? Language { get; set; }
 

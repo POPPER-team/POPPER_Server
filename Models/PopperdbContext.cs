@@ -61,7 +61,7 @@ public partial class PopperdbContext : DbContext
             entity.Property(e => e.Language).HasMaxLength(255);
             entity.Property(e => e.LastName).HasMaxLength(255);
             entity.Property(e => e.Password).HasMaxLength(255);
-            entity.Property(e => e.PreferedUnits).HasMaxLength(255);
+            entity.Property(e => e.PreferredUnits).HasMaxLength(255);
             entity.Property(e => e.Status).HasMaxLength(255);
             entity.Property(e => e.Username).HasMaxLength(255);
             entity.Property(e => e.WebLink).HasMaxLength(255);
