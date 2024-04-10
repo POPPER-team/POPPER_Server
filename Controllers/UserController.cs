@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Dtos;
@@ -35,6 +36,7 @@ public class UserController : ControllerBase
     {
         return Ok(_mapper.Map<UserDto>(await _userServices.GetUserAsync(userGuid)));
     }
+    [Authorize]
     [HttpGet("[action]")]
     public async Task<IActionResult> SearchUser(string searchString)
     {
