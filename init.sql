@@ -27,10 +27,10 @@ create table if not exists Users(
     Username varchar(255) Not Null,
     Password varchar(255) Not Null,
     Created date Not Null,
-    Status varchar(255) Not Null,
-    WebLink varchar(255) Not Null,
-    PreferredUnits varchar(255) Not Null,
-    Language varchar(255) Not Null,
+    Status varchar(255),
+    WebLink varchar(255),
+    PreferredUnits varchar(255),
+    Language varchar(255),
     Primary key(id)
     );
 

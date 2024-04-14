@@ -146,7 +146,7 @@ public class UserServices : IUserServices
     public async Task<User> RegisterUserAsync(NewUserDto user)
     {
         User newUser = _mapper.Map<User>(user);
-        user.Password = _passwordHasher.HashPassword(newUser, user.Password);
+        newUser.Password = _passwordHasher.HashPassword(newUser, user.Password);
         await _context.Users.AddAsync(newUser);
         await _context.SaveChangesAsync();
         return newUser;
