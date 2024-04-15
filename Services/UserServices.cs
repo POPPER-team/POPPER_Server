@@ -16,12 +16,9 @@ public interface IUserServices
     public Task<User> GetUserAsync(string userGuid);
 
     public Task<string> LoginUserAsync(string username, string password);
-
-    public Task<TokensDto> RefreshTokenAsync(string refreshToken);
-
     public Task<User> RegisterUserAsync(NewUserDto user);
-
     public Task<IEnumerable<User>> SearchUserAsync(string searchString);
+    Task<TokensDto> RefreshJwtTokenAsync(string jwtToken, string refreshToken);   
 }
 
 /// <summary>
@@ -90,7 +87,7 @@ public class UserServices : IUserServices
         return tokenHandler.WriteToken(token);
     }
 
-    public async Task<TokensDto> RefreshTokenAsync(string refreshToken)
+    public async Task<TokensDto> RefreshJwtTokenAsync(string jwtToken, string refreshToken)
     {
         ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(refreshToken);
         string userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
@@ -100,7 +97,7 @@ public class UserServices : IUserServices
             throw new Exception("User not found");
         }
 
-        string jwtToken = GenerateJwtToken(user);
+        jwtToken = GenerateJwtToken(user);
         string newRefreshToken = GenerateRefreshToken();
 
         return new TokensDto()

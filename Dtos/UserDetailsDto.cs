@@ -8,4 +8,8 @@ public class UserDetailsDto
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string DateOfBirth { get; set; }
+    public string Status { get; set; }
+    public string WebLink { get; set; }
+    public string PreferredUnits { get; set; }
+    public string Language { get; set; }
 }

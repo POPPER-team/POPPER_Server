@@ -7,19 +7,19 @@ public partial class User
 {
     public int Id { get; set; }
 
-    public string? Guid { get; set; } = System.Guid.NewGuid().ToString();
+    public string Guid { get; set; } = null!;
 
-    public string? FirstName { get; set; }
+    public string FirstName { get; set; } = null!;
 
-    public string? LastName { get; set; }
+    public string LastName { get; set; } = null!;
 
-    public DateTime? DateOfBirth { get; set; }
+    public DateTime DateOfBirth { get; set; }
 
-    public string? Username { get; set; }
+    public string Username { get; set; } = null!;
 
-    public string? Password { get; set; }
+    public string Password { get; set; } = null!;
 
-    public DateTime? Created { get; set; } = DateTime.Now;
+    public DateTime Created { get; set; }
 
     public string? Status { get; set; }
 

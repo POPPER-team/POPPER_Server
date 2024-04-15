@@ -29,5 +29,15 @@ public class UserAuthenticationController : ControllerBase
         await _userServices.RegisterUserAsync(userDto); 
         return Ok();
     }
+    
+    [HttpPost("[action]")]
+    public async Task<IActionResult> RefreshToken([FromBody] TokensDto refreshTokenDto)
+    {
+        var newJwtToken = await _userServices.RefreshJwtTokenAsync(refreshTokenDto.JwtToken, refreshTokenDto.RefreshToken);
+        return Ok(newJwtToken);
+    }
+    
+
+    
 
 }
