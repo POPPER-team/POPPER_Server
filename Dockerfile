@@ -5,7 +5,7 @@ COPY ["POPPER_Server.csproj", "./"]
 RUN dotnet restore "POPPER_Server.csproj"
 
 COPY . .
-
+# Add .env and appsetings.json
 # Expose ports for the application
 EXPOSE 8080
 EXPOSE 8443
