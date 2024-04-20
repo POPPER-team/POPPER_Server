@@ -11,7 +11,7 @@ public interface IMinioService
 
     public Task DownloadFileAsync(string testBucker, string fileName, string filePath);
 
-    Task<IEnumerable<string>> GetListFilesAsync(string testBucker);
+    Task<IEnumerable<string>> GetListFilesAsync(string testBucket);
 }
 
 public class MinioService : IMinioService
@@ -77,12 +77,12 @@ public class MinioService : IMinioService
         }
     }
 
-    public Task<IEnumerable<string>> GetListFilesAsync(string bucketName)
+    public Task<IEnumerable<string>> GetListFilesAsync(string testBucket)
     {
         try
         {
             ListObjectsArgs args = new ListObjectsArgs()
-                .WithBucket(bucketName);
+                .WithBucket(testBucket);
             return Task.FromResult(_minioClient.ListObjectsAsync(args).Select(i => i.Key).ToEnumerable());
         }
         catch (MinioException e)
