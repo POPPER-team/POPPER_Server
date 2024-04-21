@@ -12,10 +12,10 @@ public static class SeedData
     {
         ArgumentNullException.ThrowIfNull(app, nameof(app));
         using var scope = app.ApplicationServices.CreateScope();
-        var services = scope.ServiceProvider;
-        var context = services.GetRequiredService<PopperdbContext>();
-        var mapper = services.GetRequiredService<IMapper>();
-        var passwordHasher = services.GetRequiredService<IPasswordHasher<User>>();
+        IServiceProvider services = scope.ServiceProvider;
+        PopperdbContext context = services.GetRequiredService<PopperdbContext>();
+        IMapper mapper = services.GetRequiredService<IMapper>();
+        IPasswordHasher<User> passwordHasher = services.GetRequiredService<IPasswordHasher<User>>();
         List<NewUserDto> usersDtos = new List<NewUserDto>()
         {
             new NewUserDto()
