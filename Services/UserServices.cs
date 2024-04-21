@@ -14,11 +14,10 @@ namespace POPPER_Server.Services;
 public interface IUserServices
 {
     public Task<User> GetUserAsync(string userGuid);
-
-    public Task<string> LoginUserAsync(string username, string password);
+    public Task<TokensDto> LoginUserAsync(string username, string password);
     public Task<User> RegisterUserAsync(NewUserDto user);
     public Task<IEnumerable<User>> SearchUserAsync(string searchString);
-    Task<TokensDto> RefreshJwtTokenAsync(string jwtToken, string refreshToken);   
+    public Task<string> RefreshJwtTokenAsync(string refreshToken);   
 }
 
 /// <summary>
@@ -58,14 +57,18 @@ public class UserServices : IUserServices
     /// <param name="username">User username or email</param>
     /// <param name="password">user password in plain text it will be hashed later</param>
     /// <returns>JWT token</returns>
-    async Task<string> IUserServices.LoginUserAsync(string username, string password)
+    async Task<TokensDto> IUserServices.LoginUserAsync(string username, string password)
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-        if (user == null) return "User not found";
+        if (user == null) throw new Exception("User not found");
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
-        if (result == PasswordVerificationResult.Failed) return "Invalid password";
-        return GenerateJwtToken(user);
+        if (result == PasswordVerificationResult.Failed) throw new Exception("User not found");
+        return new TokensDto()
+        {
+            JwtToken = GenerateJwtToken(user),
+            RefreshToken = GenerateRefreshToken()
+        };
     }
 
     private string GenerateJwtToken(User user)
@@ -87,7 +90,7 @@ public class UserServices : IUserServices
         return tokenHandler.WriteToken(token);
     }
 
-    public async Task<TokensDto> RefreshJwtTokenAsync(string jwtToken, string refreshToken)
+    public async Task<string> RefreshJwtTokenAsync(string refreshToken)
     {
         ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(refreshToken);
         string userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
@@ -97,14 +100,7 @@ public class UserServices : IUserServices
             throw new Exception("User not found");
         }
 
-        jwtToken = GenerateJwtToken(user);
-        string newRefreshToken = GenerateRefreshToken();
-
-        return new TokensDto()
-        {
-            JwtToken = jwtToken,
-            RefreshToken = newRefreshToken
-        };
+        return GenerateJwtToken(user);
     }
 
     private string GenerateRefreshToken()
