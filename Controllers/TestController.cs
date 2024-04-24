@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using POPPER_Server.Dtos;
+using POPPER_Server.Helpers;
 using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
@@ -11,11 +12,13 @@ public class TestController : ControllerBase
 {
     private readonly IMongoDatabase _userDatabase;
     private readonly IMinioService _minioService;
+    private readonly ISessionService _session;
 
-    public TestController(IMongoDatabase userDatabase, IMinioService minioService)
+    public TestController(IMongoDatabase userDatabase, IMinioService minioService, ISessionService session)
     {
         _userDatabase = userDatabase;
         _minioService = minioService;
+        _session = session;
     }
 
     [HttpGet("[action]")]
@@ -62,5 +65,11 @@ public class TestController : ControllerBase
     public async Task<IActionResult> ListFiles()
     {
         return Ok(await _minioService.GetListFilesAsync("test-bucker"));
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetSession()
+    {
+        return Ok(await _session.GetSession(await Request.GetUserAsync()));
     }
 }

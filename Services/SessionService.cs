@@ -7,27 +7,41 @@ namespace POPPER_Server.Services;
 public interface ISessionService
 {
     public Task<Session> CreateNewSession(User user);
-    public Task<Session> GetSessionGuid(User user);
+    public Task<Session> GetSession(User user);
+    public Task<Session> GetSession(string sessionGuid);
 }
 
 public class SessionService : ISessionService
 {
-    private readonly IMongoDatabase _session;
+    private readonly IMongoCollection<Session> _sessions;
 
     public SessionService(IMongoDatabase session)
     {
-        _session = session;
+        _sessions = session.GetCollection<Session>("Sessions");
     }
 
-    public Task<Session> CreateNewSession(User user)
+    public async Task<Session> CreateNewSession(User user)
     {
-        //TODO add session model
-        //var collection = _session.GetCollection<BsonDocument>(); 
-        throw new NotImplementedException();
+        Session newSession = new Session()
+        {
+            UserGuid = user.Guid
+        };
+        await _sessions.InsertOneAsync(newSession);
+        return newSession;
     }
 
-    public Task<Session> GetSessionGuid(User user)
+    public async Task<Session> GetSession(User user)
     {
-        throw new NotImplementedException();
+        var filter = Builders<Session>.Filter.Eq(s => s.UserGuid, user.Guid);
+        Session session = await _sessions.Find(filter).FirstOrDefaultAsync();
+        if (session == null) return await CreateNewSession(user);
+        return session;
+    }
+
+    public async Task<Session> GetSession(string sessionGuid)
+    {
+        var filter = Builders<Session>.Filter.Eq(s => s.SessionGuid,sessionGuid);
+        Session session = await _sessions.Find(filter).FirstOrDefaultAsync();
+        return session;
     }
 }

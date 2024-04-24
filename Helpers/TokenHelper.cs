@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using POPPER_Server.Models;
+using POPPER_Server.Services;
 
 namespace POPPER_Server.Helpers;
 
@@ -14,11 +15,13 @@ public static class TokenHelper
 {
     private static PopperdbContext _context;
     private static IConfiguration _configuration;
+    private static ISessionService _session;
 
     public static void ProvideService(IServiceProvider serviceProvider)
     {
         _context = serviceProvider.GetRequiredService<PopperdbContext>();
         _configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        _session = serviceProvider.GetRequiredService<ISessionService>();
     }
 
     public static string GenerateRefreshToken()
@@ -29,16 +32,17 @@ public static class TokenHelper
         return Convert.ToBase64String(randomNumber);
     }
 
-    public static string GenerateJwtToken(User user)
+    public static async Task<string> GenerateJwtToken(User user)
     {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         Byte[] key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]);
+        var session = await _session.GetSession(user);
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim("UserGuid", user.Guid),
-                new Claim("SessionGuid", "")
+                new Claim("SessionGuid", session.SessionGuid)
             }),
             Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(_configuration["JWT:ExpiryInDays"])),
             SigningCredentials =
@@ -56,7 +60,7 @@ public static class TokenHelper
         if (user == null)
             throw new Exception("User not found");
 
-        return GenerateJwtToken(user);
+        return await GenerateJwtToken(user);
     }
 
     public static ClaimsPrincipal GetPrincipalFromExpiredToken(string token)

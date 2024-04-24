@@ -67,7 +67,7 @@ public class UserServices : IUserServices
         if (result == PasswordVerificationResult.Failed) throw new Exception("User not found");
         return new TokensDto()
         {
-            JwtToken = TokenHelper.GenerateJwtToken(user),
+            JwtToken = await TokenHelper.GenerateJwtToken(user),
             RefreshToken = TokenHelper.GenerateRefreshToken()
         };
     }
@@ -82,7 +82,7 @@ public class UserServices : IUserServices
             throw new Exception("User not found");
         }
 
-        return TokenHelper.GenerateJwtToken(user);
+        return await TokenHelper.GenerateJwtToken(user);
     }
 
     /// <summary>
