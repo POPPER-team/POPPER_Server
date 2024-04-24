@@ -12,7 +12,6 @@ namespace POPPER_Server.Helpers;
 
 public static class TokenHelper
 {
-    private static IServiceProvider services;
     private static PopperdbContext _context;
     private static IPasswordHasher<User> _passwordHasher;
     private static IConfiguration _configuration;
@@ -20,8 +19,7 @@ public static class TokenHelper
 
     public static void ProvideService(IServiceProvider serviceProvider)
     {
-        services = serviceProvider;
-        _context = services.GetRequiredService<PopperdbContext>();
+        _context = serviceProvider.GetRequiredService<PopperdbContext>();
         _configuration = serviceProvider.GetRequiredService<IConfiguration>();
     }
 
@@ -41,8 +39,8 @@ public static class TokenHelper
         {
             Subject = new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim("UserGuid", user.Guid),
+                new Claim("SessionGuid", "")
             }),
             Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(_configuration["JWT:ExpiryInDays"])),
             SigningCredentials =

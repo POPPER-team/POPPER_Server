@@ -88,7 +88,7 @@ builder.Services.AddSwaggerGen(option =>
 WebApplication? app = builder.Build();
 
 TokenHelper.ProvideService(app.Services);
-
+UserHelper.ProvideService(app.Services);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
