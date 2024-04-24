@@ -34,7 +34,6 @@ public class UserDetailsController : ControllerBase
         return Ok(_mapper.Map<UserDetailsDto>(await _userServices.GetUserAsync(userGuid)));
     }
 
-    //TODO remove when we add more Authorized enpoints Now it is used for testing
     [HttpGet("[action]")]
     public async Task<IActionResult> SearchUser(string searchString)
     {

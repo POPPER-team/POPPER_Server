@@ -10,14 +10,10 @@ namespace POPPER_Server.Helpers;
 public static class UserHelper
 {
     private static PopperdbContext _context;
-    private static IConfiguration _configuration;
-    private static IMapper _mapper;
 
     public static void ProvideService(IServiceProvider services)
     {
         _context = services.GetRequiredService<PopperdbContext>();
-        _configuration = services.GetRequiredService<IConfiguration>();
-        _mapper = services.GetRequiredService<IMapper>();
     }
 
     public static async Task<User> GetUserAsync(this HttpRequest request)

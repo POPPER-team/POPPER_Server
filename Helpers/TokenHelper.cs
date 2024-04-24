@@ -13,9 +13,7 @@ namespace POPPER_Server.Helpers;
 public static class TokenHelper
 {
     private static PopperdbContext _context;
-    private static IPasswordHasher<User> _passwordHasher;
     private static IConfiguration _configuration;
-    private static IMapper _mapper;
 
     public static void ProvideService(IServiceProvider serviceProvider)
     {
@@ -56,9 +54,7 @@ public static class TokenHelper
         string userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
         User user = await _context.Users.FirstOrDefaultAsync(u => Equals(u.Id, userId));
         if (user == null)
-        {
             throw new Exception("User not found");
-        }
 
         return GenerateJwtToken(user);
     }
