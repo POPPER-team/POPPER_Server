@@ -32,7 +32,7 @@ public static class UserHelper
         {
             //TODO create new session;
         }
-        
+
         throw new NotImplementedException();
         return sessionGuid;
     }

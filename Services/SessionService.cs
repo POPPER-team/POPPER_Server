@@ -9,18 +9,20 @@ public interface ISessionService
     public Task<string> CreateNewSession(User user);
     public Task<string> GetSessionGuid(User user);
 }
+
 public class SessionService : ISessionService
 {
-    
     private readonly IMongoDatabase _session;
+
     public SessionService(IMongoDatabase session)
     {
         _session = session;
     }
+
     public Task<string> CreateNewSession(User user)
     {
         //TODO add session model
-    //    var collection = _session.GetCollection<BsonDocument>(); 
+        //var collection = _session.GetCollection<BsonDocument>(); 
         throw new NotImplementedException();
     }
 
