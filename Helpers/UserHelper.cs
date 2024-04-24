@@ -4,16 +4,19 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using POPPER_Server.Models;
+using POPPER_Server.Services;
 
 namespace POPPER_Server.Helpers;
 
 public static class UserHelper
 {
     private static PopperdbContext _context;
+    private static ISessionService _session;
 
     public static void ProvideService(IServiceProvider services)
     {
         _context = services.GetRequiredService<PopperdbContext>();
+        _session = services.GetRequiredService<ISessionService>();
     }
 
     public static async Task<User> GetUserAsync(this HttpRequest request)
@@ -25,16 +28,10 @@ public static class UserHelper
         return user;
     }
 
-    public static async Task<string> GetSessionGuidAsync(this HttpRequest request)
+    public static async Task<Session> GetSessionAsync(this HttpRequest request)
     {
         string sessionGuid = RetrieveFromRequest("SessionGuid", request);
-        if (sessionGuid == null)
-        {
-            //TODO create new session;
-        }
-
-        throw new NotImplementedException();
-        return sessionGuid;
+        return await _session.GetSession(sessionGuid); 
     }
 
     public static ClaimsPrincipal GetPrincipalFromToken(string token)

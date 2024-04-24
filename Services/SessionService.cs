@@ -7,8 +7,9 @@ namespace POPPER_Server.Services;
 public interface ISessionService
 {
     public Task<Session> CreateNewSession(User user);
-    public Task<Session> GetSession(User user);
+    public Task<Session> GetOrCreateSession(User user);
     public Task<Session> GetSession(string sessionGuid);
+    public Task<Session> UpdateText(Session session, string text);
 }
 
 public class SessionService : ISessionService
@@ -30,7 +31,7 @@ public class SessionService : ISessionService
         return newSession;
     }
 
-    public async Task<Session> GetSession(User user)
+    public async Task<Session> GetOrCreateSession(User user)
     {
         var filter = Builders<Session>.Filter.Eq(s => s.UserGuid, user.Guid);
         Session session = await _sessions.Find(filter).FirstOrDefaultAsync();
@@ -42,6 +43,15 @@ public class SessionService : ISessionService
     {
         var filter = Builders<Session>.Filter.Eq(s => s.SessionGuid,sessionGuid);
         Session session = await _sessions.Find(filter).FirstOrDefaultAsync();
+        return session;
+    }
+
+    //TODO change this to fluent interface
+    public async Task<Session> UpdateText(Session session, string text)
+    {
+        var filter = Builders<Session>.Filter.Eq(s => s.SessionGuid,session.SessionGuid);
+        var update = Builders<Session>.Update.Set(s => s.text ,text);
+        await _sessions.UpdateOneAsync(filter,update);
         return session;
     }
 }

@@ -36,7 +36,7 @@ public static class TokenHelper
     {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         Byte[] key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]);
-        var session = await _session.GetSession(user);
+        var session = await _session.GetOrCreateSession(user);
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
