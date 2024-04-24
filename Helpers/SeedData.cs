@@ -70,6 +70,7 @@ public static class SeedData
         {
             users[i].Password = passwordHasher.HashPassword(users[i], usersDtos[i].Password);
         }
+
         context.AddRange(users);
         context.SaveChanges();
         return app;
