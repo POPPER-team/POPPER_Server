@@ -6,8 +6,8 @@ namespace POPPER_Server.Services;
 
 public interface ISessionService
 {
-    public Task<string> CreateNewSession(User user);
-    public Task<string> GetSessionGuid(User user);
+    public Task<Session> CreateNewSession(User user);
+    public Task<Session> GetSessionGuid(User user);
 }
 
 public class SessionService : ISessionService
@@ -19,14 +19,14 @@ public class SessionService : ISessionService
         _session = session;
     }
 
-    public Task<string> CreateNewSession(User user)
+    public Task<Session> CreateNewSession(User user)
     {
         //TODO add session model
         //var collection = _session.GetCollection<BsonDocument>(); 
         throw new NotImplementedException();
     }
 
-    public Task<string> GetSessionGuid(User user)
+    public Task<Session> GetSessionGuid(User user)
     {
         throw new NotImplementedException();
     }
