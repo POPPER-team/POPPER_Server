@@ -59,7 +59,8 @@ public class TestController : ControllerBase
     public async Task<IActionResult> StoreText([FromForm] string text)
     {
         Session s = await Request.GetSessionAsync();
-        await _session.UpdateText(s, text);
+        s.text =text;
+        await _session.UpdateText(s,text);
         return Ok(s);
     }
 }

@@ -46,7 +46,7 @@ public class SessionService : ISessionService
         return session;
     }
 
-    //TODO change this to fluent interface
+    //TODO Any new field should have its own method to update 
     public async Task<Session> UpdateText(Session session, string text)
     {
         var filter = Builders<Session>.Filter.Eq(s => s.SessionGuid,session.SessionGuid);

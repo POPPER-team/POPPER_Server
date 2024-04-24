@@ -5,7 +5,6 @@ namespace POPPER_Server.Models;
 public class Session 
 {
     [BsonId]
-    public string _Id { get;  set; }
     public string SessionGuid { get; set; } = Guid.NewGuid().ToString();
 
     public string UserGuid { get;  set; }
