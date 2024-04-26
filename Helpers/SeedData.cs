@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using POPPER_Server.Dtos;
 using POPPER_Server.Models;
-using POPPER_Server.Services;
 
 namespace POPPER_Server.Helpers;
 

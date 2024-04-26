@@ -1,9 +1,6 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Dtos;
-using POPPER_Server.Helpers;
-using POPPER_Server.Models;
 using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;

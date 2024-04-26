@@ -2,8 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using AutoMapper;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using POPPER_Server.Models;
@@ -36,7 +34,7 @@ public static class TokenHelper
     {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         Byte[] key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]);
-        var session = await _session.GetOrCreateSession(user);
+        Session session = await _session.GetOrCreateSession(user);
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]

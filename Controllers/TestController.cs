@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using POPPER_Server.Dtos;
 using POPPER_Server.Helpers;
