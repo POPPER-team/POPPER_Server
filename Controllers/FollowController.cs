@@ -1,46 +1,47 @@
 using Microsoft.AspNetCore.Mvc;
+using POPPER_Server.Helpers;
+using POPPER_Server.Models;
 using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
 
-
 [Route("api/[controller]")]
-
-
 public class FollowController : ControllerBase
 {
     private readonly IFollowService _followService;
-    
+
     public FollowController(IFollowService followService)
     {
         _followService = followService;
     }
-    
+
     [HttpPost("[action]/{followingGuid}")]
-    public async Task<IActionResult> FollowUser([FromRoute] string userGuid, [FromRoute] string followingGuid)
+    public async Task<IActionResult> FollowUser([FromRoute] string followingGuid)
     {
-        await _followService.FollowUserAsync(userGuid, followingGuid);
+        User user = await Request.GetUserAsync();
+        await _followService.FollowUserAsync(user.Guid, followingGuid);
         return Ok();
     }
-    
+
     [HttpDelete("[action]/{followingGuid}")]
-    public async Task<IActionResult> UnFollowUser([FromRoute] string userGuid, [FromRoute] string followingGuid)
+    public async Task<IActionResult> UnFollowUser([FromRoute] string followingGuid)
     {
-        await _followService.UnFollowUserAsync(userGuid, followingGuid);
+        User user = await Request.GetUserAsync();
+        await _followService.UnFollowUserAsync(user.Guid, followingGuid);
         return Ok();
     }
-    
-    [HttpGet("followers")]
-    public async Task<IActionResult> GetFollowers([FromRoute] string userGuid)
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetFollowers()
     {
-        return Ok(await _followService.GetFollowersAsync(userGuid));
+        User user = await Request.GetUserAsync();
+        return Ok(await _followService.GetFollowersAsync(user));
     }
-    
-    [HttpGet("following")]
-    public async Task<IActionResult> GetFollowing([FromRoute] string userGuid)
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetFollowing()
     {
-        return Ok(await _followService.GetFollowingAsync(userGuid));
+        User user = await Request.GetUserAsync();
+        return Ok(await _followService.GetFollowingAsync(user));
     }
-    
-    
 }
