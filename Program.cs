@@ -46,6 +46,7 @@ builder.Services
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IUserServices, UserServices>();
+builder.Services.AddTransient<ISessionService, SessionService>();
 
 builder.Services.AddControllers();
 
@@ -84,8 +85,11 @@ builder.Services.AddSwaggerGen(option =>
         });
 });
 
+
 WebApplication? app = builder.Build();
 
+TokenHelper.ProvideService(app.Services);
+UserHelper.ProvideService(app.Services);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
