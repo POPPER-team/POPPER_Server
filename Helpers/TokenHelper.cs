@@ -34,13 +34,13 @@ public static class TokenHelper
     {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         Byte[] key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]);
-        Session session = await _session.GetOrCreateSession(user);
+        string sessionGuid= await _session.GetOrCreateSession(user);
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim("UserGuid", user.Guid),
-                new Claim("SessionGuid", session.SessionGuid)
+                new Claim("SessionGuid",sessionGuid)
             }),
             Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(_configuration["JWT:ExpiryInDays"])),
             SigningCredentials =

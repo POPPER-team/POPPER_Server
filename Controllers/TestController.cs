@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using POPPER_Server.Dtos;
@@ -48,18 +49,19 @@ public class TestController : ControllerBase
         return Ok(await _minioService.GetListFilesAsync("test-bucker"));
     }
 
+    // [Authorize]
     [HttpGet("[action]")]
     public async Task<IActionResult> GetSession()
     {
-        return Ok(await Request.GetSessionAsync());
+        return Ok(await _session.GetSessionAsync((await Request.GetSessionGuidAsync())));
     }
 
+    [Authorize]
     [HttpPost("[action]")]
     public async Task<IActionResult> StoreText([FromForm] string text)
     {
-        Session s = await Request.GetSessionAsync();
-        s.text =text;
-        await _session.UpdateText(s,text);
-        return Ok(s);
+        string sessionGuid = await Request.GetSessionGuidAsync();
+        await _session.UpdateText(sessionGuid, text);
+        return Ok(await _session.GetSessionAsync(sessionGuid));
     }
 }

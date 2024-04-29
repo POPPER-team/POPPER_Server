@@ -26,10 +26,11 @@ public static class UserHelper
         return user;
     }
 
-    public static async Task<Session> GetSessionAsync(this HttpRequest request)
+    public static async Task<string> GetSessionGuidAsync(this HttpRequest request)
     {
         string sessionGuid = RetrieveFromRequest("SessionGuid", request);
-        return await _session.GetSession(sessionGuid); 
+        if (sessionGuid == null) throw new Exception("Session guid does not exists");
+        return (await _session.GetSessionAsync(sessionGuid)).SessionGuid; 
     }
 
     public static ClaimsPrincipal GetPrincipalFromToken(string token)
