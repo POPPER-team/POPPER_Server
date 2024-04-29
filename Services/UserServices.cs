@@ -61,9 +61,9 @@ public class UserServices : IUserServices
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-        if (user == null) throw new Exception("User not found");
+        if (user == null) throw new Exception("Login failed");
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
-        if (result == PasswordVerificationResult.Failed) throw new Exception("User not found");
+        if (result == PasswordVerificationResult.Failed) throw new Exception("Login failed");
         return new TokensDto()
         {
             JwtToken = GenerateJwtToken(user),
