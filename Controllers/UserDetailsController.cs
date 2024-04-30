@@ -13,6 +13,7 @@ public class UserDetailsController : ControllerBase
     private readonly IUserServices _userServices;
     private readonly IMapper _mapper;
     private readonly IUserProfileService _UserProfile;
+
     public UserDetailsController(IUserServices userServices, IMapper mapper, IUserProfileService userProfile)
     {
         _userServices = userServices;
@@ -24,7 +25,7 @@ public class UserDetailsController : ControllerBase
     [HttpGet("[action]")]
     public async Task<IActionResult> GetYourData()
     {
-        User user =await Request.GetUserAsync();
+        User user = await Request.GetUserAsync();
         return Ok(_mapper.Map<UserDetailsDto>(user));
     }
 
@@ -53,7 +54,8 @@ public class UserDetailsController : ControllerBase
     {
         User user = await Request.GetUserAsync();
         string fileName = await _UserProfile.GetProfilePicture(user);
-        var stream = System.IO.File.OpenRead(fileName);
-        return Ok(new FileStreamResult(stream, "application/octet-stream"));
+        var bytes = System.IO.File.ReadAllBytes(fileName);
+        FileContentResult file = new FileContentResult(bytes, "image/jpg");
+        return file;
     }
 }
