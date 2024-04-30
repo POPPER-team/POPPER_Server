@@ -46,7 +46,9 @@ builder.Services
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IUserServices, UserServices>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddTransient<ISessionService, SessionService>();
+
 
 builder.Services.AddControllers();
 
