@@ -12,7 +12,7 @@ public class UserDetailsController : ControllerBase
 {
     private readonly IUserServices _userServices;
     private readonly IMapper _mapper;
-
+    private readonly IUserProfileService _UserProfile;
     public UserDetailsController(IUserServices userServices, IMapper mapper)
     {
         _userServices = userServices;
@@ -38,5 +38,12 @@ public class UserDetailsController : ControllerBase
     public async Task<IActionResult> SearchUser(string searchString)
     {
         return Ok(_mapper.Map<List<UserDto>>(await _userServices.SearchUserAsync(searchString)));
+    }
+
+    [HttpPut("[action]")]
+    public async Task<IActionResult> UploadProfilePicture([FromForm] FileUploadDto file)
+    {
+        User user = await _UserProfile.SetProfilePicture((await Request.GetUserAsync()), file);
+        return Ok(user);
     }
 }
