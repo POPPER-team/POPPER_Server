@@ -52,6 +52,8 @@ public class UserDetailsController : ControllerBase
     public async Task<IActionResult> DownloadProfilePicture()
     {
         User user = await Request.GetUserAsync();
-        return Ok(await _UserProfile.GetProfilePicture(user));
+        string fileName = await _UserProfile.GetProfilePicture(user);
+        var stream = System.IO.File.OpenRead(fileName);
+        return Ok(new FileStreamResult(stream, "application/octet-stream"));
     }
 }
