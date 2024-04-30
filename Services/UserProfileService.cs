@@ -1,5 +1,6 @@
 using CommunityToolkit.HighPerformance;
 using Minio;
+using Minio.DataModel;
 using Minio.DataModel.Args;
 using POPPER_Server.Dtos;
 using POPPER_Server.Models;
@@ -50,12 +51,12 @@ public class UserProfileService : IUserProfileService
     {
         string fileExtension = "jpg";
         if (!await CheckIfBucketExists()) return null;
-        var statPictureArgs = new StatObjectArgs()
+        StatObjectArgs statPictureArgs = new StatObjectArgs()
             .WithBucket(bucketName)
             .WithObject($"{user.Guid}.{fileExtension}");
         _ = await _minioClient.StatObjectAsync(statPictureArgs);
 
-        var getPictureArgs = new GetObjectArgs()
+        GetObjectArgs getPictureArgs = new GetObjectArgs()
             .WithBucket(bucketName)
             .WithObject($"{user.Guid}.{fileExtension}")
             .WithCallbackStream(async stream =>
@@ -65,14 +66,14 @@ public class UserProfileService : IUserProfileService
                 var fileStream = File.Create($"{user.Guid}.jpg");
                 await stream.CopyToAsync(fileStream)
                     .ConfigureAwait(false);
-                fileStream.DisposeAsync()
+                await fileStream.DisposeAsync()
                     .ConfigureAwait(false);
-                stream.DisposeAsync();
+                await stream.DisposeAsync();
             });
 
-        var objStat = await _minioClient.GetObjectAsync(getPictureArgs)
-            .ConfigureAwait(false);
-
+        ObjectStat objStat = await _minioClient.GetObjectAsync(getPictureArgs)
+            .ConfigureAwait(true);
+        var da = objStat.Size;
         return $"{user.Guid}.{fileExtension}";
     }
 
