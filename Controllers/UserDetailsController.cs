@@ -13,10 +13,11 @@ public class UserDetailsController : ControllerBase
     private readonly IUserServices _userServices;
     private readonly IMapper _mapper;
     private readonly IUserProfileService _UserProfile;
-    public UserDetailsController(IUserServices userServices, IMapper mapper)
+    public UserDetailsController(IUserServices userServices, IMapper mapper, IUserProfileService userProfile)
     {
         _userServices = userServices;
         _mapper = mapper;
+        _UserProfile = userProfile;
     }
 
     [Authorize]
@@ -45,5 +46,12 @@ public class UserDetailsController : ControllerBase
     {
         User user = await _UserProfile.SetProfilePicture((await Request.GetUserAsync()), file);
         return Ok(user);
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> DownloadProfilePicture()
+    {
+        User user = await Request.GetUserAsync();
+        return Ok(await _UserProfile.GetProfilePicture(user));
     }
 }
