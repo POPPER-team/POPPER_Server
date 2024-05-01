@@ -15,8 +15,9 @@ public interface IUserProfileService
 public class UserProfileService : IUserProfileService
 {
     private readonly IMinioClient _minioClient;
-    private const string contentType = "image/jpg";
-    private const string bucketName = "profile-pictures";
+
+    //TODO check for contentType 
+    private const string BucketName = "profile-pictures";
 
     public UserProfileService(IMinioClient minioClient)
     {
@@ -30,20 +31,18 @@ public class UserProfileService : IUserProfileService
             await CreateIfBucketNotExists();
             string filePath = Path.GetTempFileName();
             //TODO handle file extension differently
-            string fileExtension = picture.File.FileName.Split(".")[1];
             await using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await picture.File.CopyToAsync(stream);
             }
 
             PutObjectArgs putObject = new PutObjectArgs()
-                .WithBucket(bucketName)
-                .WithObject($"{user.Guid}.{fileExtension}")
+                .WithBucket(BucketName)
+                .WithObject(user.Guid)
                 .WithFileName(filePath)
-                .WithContentType(contentType);
+                .WithContentType(picture.File.ContentType);
 
-            _ = await _minioClient.PutObjectAsync(putObject)
-                .ConfigureAwait(true);
+            _ = await _minioClient.PutObjectAsync(putObject);
         }
         catch (Exception e)
         {
@@ -56,33 +55,30 @@ public class UserProfileService : IUserProfileService
     public async Task<FileContentResult> GetProfilePicture(User user)
     {
         //TODO handle file extenson differently
-        string fileExtension = "jpg";
-        string fileName = $"{user.Guid}.{fileExtension}";
         await CreateIfBucketNotExists();
         StatObjectArgs statPictureArgs = new StatObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject(fileName);
+            .WithBucket(BucketName)
+            .WithObject(user.Guid);
         _ = await _minioClient.StatObjectAsync(statPictureArgs);
 
         GetObjectArgs getPictureArgs = new GetObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject(fileName)
+            .WithBucket(BucketName)
+            .WithObject(user.Guid)
             .WithCallbackStream(stream =>
             {
-                using var fileStream = File.Create($"{user.Guid}.jpg");
+                using FileStream fileStream = File.Create(user.Guid);
                 stream.CopyTo(fileStream);
                 stream.Dispose();
             });
 
-        _ = await _minioClient.GetObjectAsync(getPictureArgs)
-            .ConfigureAwait(true);
+        var ObjData = await _minioClient.GetObjectAsync(getPictureArgs);
 
-        byte[] bytes = await File.ReadAllBytesAsync(fileName).ConfigureAwait(true);
-        FileContentResult file = new FileContentResult(bytes, "image/jpg")
+        byte[] bytes = await File.ReadAllBytesAsync(user.Guid);
+        FileContentResult file = new FileContentResult(bytes, ObjData.ContentType)
         {
-            FileDownloadName = fileName,
+            FileDownloadName = $"{user.Guid}.{ObjData.ContentType.Split("/")[1]}",
         };
-        File.Delete(fileName);
+        File.Delete(user.Guid);
         return file;
     }
 
@@ -90,7 +86,7 @@ public class UserProfileService : IUserProfileService
     private async Task CreateIfBucketNotExists()
     {
         BucketExistsArgs? bukerArgs = new BucketExistsArgs()
-            .WithBucket(bucketName);
+            .WithBucket(BucketName);
 
         bool b = await _minioClient.BucketExistsAsync(bukerArgs)
             .ConfigureAwait(false);
@@ -98,7 +94,7 @@ public class UserProfileService : IUserProfileService
         if (!b)
         {
             MakeBucketArgs newBucket = new MakeBucketArgs()
-                .WithBucket(bucketName);
+                .WithBucket(BucketName);
             await _minioClient.MakeBucketAsync(newBucket)
                 .ConfigureAwait(true);
         }
