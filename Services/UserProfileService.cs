@@ -1,6 +1,5 @@
-using CommunityToolkit.HighPerformance;
+using Microsoft.AspNetCore.Mvc;
 using Minio;
-using Minio.DataModel;
 using Minio.DataModel.Args;
 using POPPER_Server.Dtos;
 using POPPER_Server.Models;
@@ -9,15 +8,15 @@ namespace POPPER_Server.Services;
 
 public interface IUserProfileService
 {
-    public Task<User> SetProfilePicture(User user, FileUploadDto picture);
-    public Task<string> GetProfilePicture(User user);
+    public Task<bool> SetProfilePicture(User user, FileUploadDto picture);
+    public Task<FileContentResult> GetProfilePicture(User user);
 }
 
 public class UserProfileService : IUserProfileService
 {
     private readonly IMinioClient _minioClient;
 
-    private const string contentType = "application/zip";
+    private const string contentType = "image/jpg";
     private const string bucketName = "profile-pictures";
 
     public UserProfileService(IMinioClient minioClient)
@@ -25,60 +24,73 @@ public class UserProfileService : IUserProfileService
         _minioClient = minioClient;
     }
 
-    public async Task<User> SetProfilePicture(User user, FileUploadDto picture)
+    public async Task<bool> SetProfilePicture(User user, FileUploadDto picture)
     {
-        if (!await CheckIfBucketExists()) return user;
-        string filePath = Path.GetTempFileName();
-        string fileExtension = picture.File.FileName.Split(".")[1];
-        await using (var stream = new FileStream(filePath, FileMode.Create))
+        try
         {
-            await picture.File.CopyToAsync(stream);
+            await CreateIfBucketNotExists();
+            string filePath = Path.GetTempFileName();
+            //TODO handle file extension differently
+            string fileExtension = picture.File.FileName.Split(".")[1];
+            await using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await picture.File.CopyToAsync(stream);
+            }
+
+            PutObjectArgs putObject = new PutObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject($"{user.Guid}.{fileExtension}")
+                .WithFileName(filePath)
+                .WithContentType(contentType);
+
+            _ = await _minioClient.PutObjectAsync(putObject)
+                .ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            return false;
         }
 
-        PutObjectArgs putObject = new PutObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject($"{user.Guid}.{fileExtension}")
-            .WithFileName(filePath)
-            .WithContentType(contentType);
-
-        _ = await _minioClient.PutObjectAsync(putObject)
-            .ConfigureAwait(false);
-
-        return user;
+        return true;
     }
 
-    public async Task<string> GetProfilePicture(User user)
+    public async Task<FileContentResult> GetProfilePicture(User user)
     {
+        //TODO handle file extenson differently
         string fileExtension = "jpg";
-        if (!await CheckIfBucketExists()) return null;
+        string fileName = $"{user.Guid}.{fileExtension}";
+        await CreateIfBucketNotExists();
         StatObjectArgs statPictureArgs = new StatObjectArgs()
             .WithBucket(bucketName)
-            .WithObject($"{user.Guid}.{fileExtension}");
+            .WithObject(fileName);
         _ = await _minioClient.StatObjectAsync(statPictureArgs);
 
         GetObjectArgs getPictureArgs = new GetObjectArgs()
             .WithBucket(bucketName)
-            .WithObject($"{user.Guid}.{fileExtension}")
-            .WithCallbackStream(async stream =>
+            .WithObject(fileName)
+            .WithCallbackStream(stream =>
             {
                 //TODO save picture to /temp folder
                 //TODO .jpg change to be actual extension
-                var fileStream = File.Create($"{user.Guid}.jpg");
-                await stream.CopyToAsync(fileStream)
-                    .ConfigureAwait(false);
-                await fileStream.DisposeAsync()
-                    .ConfigureAwait(false);
-                await stream.DisposeAsync();
+                using var fileStream = File.Create($"{user.Guid}.jpg");
+                stream.CopyTo(fileStream);
+                stream.Dispose();
             });
 
-        ObjectStat objStat = await _minioClient.GetObjectAsync(getPictureArgs)
+        _ = await _minioClient.GetObjectAsync(getPictureArgs)
             .ConfigureAwait(true);
-        var da = objStat.Size;
-        return $"{user.Guid}.{fileExtension}";
+
+        byte[] bytes = await File.ReadAllBytesAsync(fileName).ConfigureAwait(true);
+        FileContentResult file = new FileContentResult(bytes, "image/jpg")
+        {
+            FileDownloadName = fileName,
+        };
+        File.Delete(fileName);
+        return file;
     }
 
 
-    async Task<bool> CheckIfBucketExists()
+    private async Task CreateIfBucketNotExists()
     {
         BucketExistsArgs? bukerArgs = new BucketExistsArgs()
             .WithBucket(bucketName);
@@ -93,7 +105,5 @@ public class UserProfileService : IUserProfileService
             await _minioClient.MakeBucketAsync(newBucket)
                 .ConfigureAwait(false);
         }
-
-        return b;
     }
 }
