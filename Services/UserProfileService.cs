@@ -15,7 +15,6 @@ public interface IUserProfileService
 public class UserProfileService : IUserProfileService
 {
     private readonly IMinioClient _minioClient;
-
     private const string contentType = "image/jpg";
     private const string bucketName = "profile-pictures";
 
@@ -26,11 +25,6 @@ public class UserProfileService : IUserProfileService
 
     public async Task<bool> SetProfilePicture(User user, FileUploadDto picture)
     {
-        if (!await ResizeImage(picture.File))
-        {
-            throw new Exception("image wrong size and can't be resized");
-        }
-
         try
         {
             await CreateIfBucketNotExists();
@@ -75,8 +69,6 @@ public class UserProfileService : IUserProfileService
             .WithObject(fileName)
             .WithCallbackStream(stream =>
             {
-                //TODO save picture to /temp folder
-                //TODO .jpg change to be actual extension
                 using var fileStream = File.Create($"{user.Guid}.jpg");
                 stream.CopyTo(fileStream);
                 stream.Dispose();
@@ -110,20 +102,5 @@ public class UserProfileService : IUserProfileService
             await _minioClient.MakeBucketAsync(newBucket)
                 .ConfigureAwait(true);
         }
-    }
-
-    private Task<bool> ResizeImage(IFormFile file)
-    {
-        try
-        {
-           //TODO implement Imagesharp for resing images mby 
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return Task.FromResult(false);
-        }
-
-        return Task.FromResult(true);
     }
 }
