@@ -45,17 +45,25 @@ public class UserDetailsController : ControllerBase
     [HttpPut("[action]")]
     public async Task<IActionResult> UploadProfilePicture([FromForm] FileUploadDto file)
     {
-        User user = await _UserProfile.SetProfilePicture((await Request.GetUserAsync()), file);
-        return Ok(user);
+        bool success = await _UserProfile.SetProfilePicture((await Request.GetUserAsync()), file);
+        if (!success) return BadRequest();
+        return Ok();
     }
 
     [HttpGet("[action]")]
-    public async Task<IActionResult> DownloadProfilePicture()
+    public async Task<IActionResult> DownloadProfilePicture(string? userGuid)
     {
-        User user = await Request.GetUserAsync();
-        string fileName = await _UserProfile.GetProfilePicture(user);
-        var bytes = System.IO.File.ReadAllBytes(fileName);
-        FileContentResult file = new FileContentResult(bytes, "image/jpg");
+        User user;
+        if (userGuid == null)
+        {
+            user = await Request.GetUserAsync();
+        }
+        else
+        {
+            user = await _userServices.GetUserAsync(userGuid);
+        }
+
+        FileContentResult file = await _UserProfile.GetProfilePicture(user);
         return file;
     }
 }

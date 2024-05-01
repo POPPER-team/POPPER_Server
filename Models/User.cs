@@ -1,9 +1,10 @@
-﻿namespace POPPER_Server.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace POPPER_Server.Models;
 
 public partial class User
 {
     public int Id { get; set; }
-    
     public string Guid { get; set; } = System.Guid.NewGuid().ToString();
 
     public string FirstName { get; set; }
