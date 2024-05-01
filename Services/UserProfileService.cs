@@ -26,6 +26,11 @@ public class UserProfileService : IUserProfileService
 
     public async Task<bool> SetProfilePicture(User user, FileUploadDto picture)
     {
+        if (!await ResizeImage(picture.File))
+        {
+            throw new Exception("image wrong size and can't be resized");
+        }
+
         try
         {
             await CreateIfBucketNotExists();
@@ -44,7 +49,7 @@ public class UserProfileService : IUserProfileService
                 .WithContentType(contentType);
 
             _ = await _minioClient.PutObjectAsync(putObject)
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
         }
         catch (Exception e)
         {
@@ -103,7 +108,22 @@ public class UserProfileService : IUserProfileService
             MakeBucketArgs newBucket = new MakeBucketArgs()
                 .WithBucket(bucketName);
             await _minioClient.MakeBucketAsync(newBucket)
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
         }
+    }
+
+    private Task<bool> ResizeImage(IFormFile file)
+    {
+        try
+        {
+           //TODO implement Imagesharp for resing images mby 
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return Task.FromResult(false);
+        }
+
+        return Task.FromResult(true);
     }
 }
