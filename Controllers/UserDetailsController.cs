@@ -12,13 +12,13 @@ public class UserDetailsController : ControllerBase
 {
     private readonly IUserServices _userServices;
     private readonly IMapper _mapper;
-    private readonly IUserProfileService _UserProfile;
+    private readonly IUserProfileService _userProfile;
 
     public UserDetailsController(IUserServices userServices, IMapper mapper, IUserProfileService userProfile)
     {
         _userServices = userServices;
         _mapper = mapper;
-        _UserProfile = userProfile;
+        _userProfile = userProfile;
     }
 
     [Authorize]
@@ -45,7 +45,7 @@ public class UserDetailsController : ControllerBase
     [HttpPut("[action]")]
     public async Task<IActionResult> UploadProfilePicture([FromForm] FileUploadDto file)
     {
-        bool success = await _UserProfile.SetProfilePicture((await Request.GetUserAsync()), file);
+        bool success = await _userProfile.SetProfilePicture((await Request.GetUserAsync()), file);
         if (!success) return BadRequest();
         return Ok();
     }
@@ -63,7 +63,7 @@ public class UserDetailsController : ControllerBase
             user = await _userServices.GetUserAsync(userGuid);
         }
 
-        FileContentResult file = await _UserProfile.GetProfilePicture(user);
-        return file;
+        if (user == null) return BadRequest();
+        return await _userProfile.GetProfilePicture(user);
     }
 }
