@@ -19,7 +19,7 @@ public class FollowController : ControllerBase
     public async Task<IActionResult> FollowUser([FromRoute] string followingGuid)
     {
         User user = await Request.GetUserAsync();
-        await _followService.FollowUserAsync(user.Guid, followingGuid);
+        await _followService.FollowUserAsync(user, followingGuid);
         return Ok();
     }
 
@@ -27,7 +27,7 @@ public class FollowController : ControllerBase
     public async Task<IActionResult> UnFollowUser([FromRoute] string followingGuid)
     {
         User user = await Request.GetUserAsync();
-        await _followService.UnFollowUserAsync(user.Guid, followingGuid);
+        await _followService.UnFollowUserAsync(user, followingGuid);
         return Ok();
     }
 

@@ -8,8 +8,8 @@ namespace POPPER_Server.Services;
 
 public interface IFollowService
 {
-    public Task FollowUserAsync(string userGuid, string followingGuid);
-    public Task UnFollowUserAsync(string userGuid, string followingGuid);
+    public Task FollowUserAsync(User user, string followingGuid);
+    public Task UnFollowUserAsync(User user, string followingGuid);
     public Task<List<User>> GetFollowersAsync(User user);
     public Task<List<User>> GetFollowingAsync(User user);
 }
@@ -23,15 +23,20 @@ public class FollowService : IFollowService
         _context = context;
     }
 
-
-    public async Task FollowUserAsync(string userGuid, string followingGuid)
+    public async Task FollowUserAsync(User user, string followingGuid)
     {
-       User user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
        User followUser = await _context.Users.FirstOrDefaultAsync(u => u.Guid == followingGuid);
 
-       if (user.Guid == userGuid && followUser.Guid == followingGuid)
+       if (user.Guid == followingGuid)
        {
-              throw new Exception("You can't follow yourself or that user again");
+              throw new Exception("You can't follow yourself");
+       }
+
+       Following existingFollow = await _context.Followings.FirstOrDefaultAsync(f => f.UserId == user.Id && f.FollowingId == followUser.Id);
+
+       if (existingFollow != null)
+       {
+           throw new Exception("You are already following this user!");
        }
        
         Following follow = new Following()
@@ -41,27 +46,24 @@ public class FollowService : IFollowService
         };
 
         _context.Followings.Add(follow);
+        
         await _context.SaveChangesAsync();
     }
 
-    public async Task UnFollowUserAsync(string userGuid, string followingGuid)
+    public async Task UnFollowUserAsync(User user, string followingGuid)
     {
-        User user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
         User followUser = await _context.Users.FirstOrDefaultAsync(u => u.Guid == followingGuid);
-        
-        
         Following follow = await _context.Followings.FirstOrDefaultAsync(f =>
             f.UserId == user.Id && f.FollowingId == followUser.Id);
         
-        
-        
-        if (follow != null)
+        if (follow == null)
         {
-            _context.Followings.Remove(follow);
-            await _context.SaveChangesAsync();
+            return;
         }
+        
+        _context.Followings.Remove(follow);
+        await _context.SaveChangesAsync();
     }
-
     public async Task<List<User>> GetFollowersAsync(User user)
     {
         return await _context.Followings
@@ -71,10 +73,8 @@ public class FollowService : IFollowService
             .AsNoTracking()
             .ToListAsync();
     }
-
     public async Task<List<User>> GetFollowingAsync(User user)
     {
-        
         return await _context.Followings
             .Where(f => f.UserId == user.Id)
             .Include(u => u.User)
