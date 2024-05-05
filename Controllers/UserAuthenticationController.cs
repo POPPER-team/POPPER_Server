@@ -1,8 +1,6 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Dtos;
-using POPPER_Server.Models;
 using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
@@ -18,8 +16,8 @@ public class UserAuthenticationController : ControllerBase
         _mapper = mapper;
     }
     
-    [HttpGet("[action]")]
-    public async Task<IActionResult> Login([FromHeader]UserLoginDto userLoginDto)
+    [HttpPost("[action]")]
+    public async Task<IActionResult> Login([FromForm]UserLoginDto userLoginDto)
     {
         return Ok(await _userServices.LoginUserAsync(userLoginDto.Username, userLoginDto.Password));
     }
@@ -31,9 +29,10 @@ public class UserAuthenticationController : ControllerBase
     }
     
     [HttpPost("[action]")]
-    public async Task<IActionResult> RefreshToken([FromBody] TokensDto refreshTokenDto)
+    public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
     {
-        var newJwtToken = await _userServices.RefreshJwtTokenAsync(refreshTokenDto.JwtToken, refreshTokenDto.RefreshToken);
+        throw new NotImplementedException();
+        var newJwtToken = await _userServices.RefreshJwtTokenAsync(refreshToken);
         return Ok(newJwtToken);
     }
     

@@ -1,8 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using MySql.Data.MySqlClient;
 using POPPER_Server.Dtos;
+using POPPER_Server.Helpers;
 using POPPER_Server.Models;
 using POPPER_Server.Services;
 
@@ -11,30 +11,13 @@ namespace POPPER_Server.Controllers;
 [Route("api/[controller]")]
 public class TestController : ControllerBase
 {
-    private readonly IMongoDatabase _userDatabase;
     private readonly IMinioService _minioService;
+    private readonly ISessionService _session;
 
-    public TestController(IMongoDatabase userDatabase, IMinioService minioService)
+    public TestController(IMongoDatabase userDatabase, IMinioService minioService, ISessionService session)
     {
-        _userDatabase = userDatabase;
         _minioService = minioService;
-    }
-
-    [HttpGet("[action]")]
-    public IActionResult GetUser()
-    {
-        var collection = _userDatabase.GetCollection<BsonDocument>("testCollection");
-        var document = collection.Find(new BsonDocument());
-        var dictionary = document.ToList().Select(x => x.ToDictionary());
-        return Ok(dictionary);
-    }
-
-    [HttpPost("[action]")]
-    public IActionResult PostUser(string postString)
-    {
-        var collection = _userDatabase.GetCollection<BsonDocument>("testCollection");
-        collection.InsertOne(new BsonDocument("test", postString));
-        return Ok();
+        _session = session;
     }
 
     [HttpPost("[action]")]
@@ -64,5 +47,21 @@ public class TestController : ControllerBase
     public async Task<IActionResult> ListFiles()
     {
         return Ok(await _minioService.GetListFilesAsync("test-bucker"));
+    }
+
+    // [Authorize]
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetSession()
+    {
+        return Ok(await _session.GetSessionAsync((await Request.GetSessionGuidAsync())));
+    }
+
+    [Authorize]
+    [HttpPost("[action]")]
+    public async Task<IActionResult> StoreText([FromForm] string text)
+    {
+        string sessionGuid = await Request.GetSessionGuidAsync();
+        await _session.UpdateText(sessionGuid, text);
+        return Ok(await _session.GetSessionAsync(sessionGuid));
     }
 }

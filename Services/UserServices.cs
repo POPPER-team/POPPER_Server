@@ -1,12 +1,9 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using POPPER_Server.Dtos;
+using POPPER_Server.Helpers;
 using POPPER_Server.Models;
 
 namespace POPPER_Server.Services;
@@ -14,11 +11,10 @@ namespace POPPER_Server.Services;
 public interface IUserServices
 {
     public Task<User> GetUserAsync(string userGuid);
-
-    public Task<string> LoginUserAsync(string username, string password);
+    public Task<TokensDto> LoginUserAsync(string username, string password);
     public Task<User> RegisterUserAsync(NewUserDto user);
     public Task<IEnumerable<User>> SearchUserAsync(string searchString);
-    Task<TokensDto> RefreshJwtTokenAsync(string jwtToken, string refreshToken);   
+    public Task<string> RefreshJwtTokenAsync(string refreshToken);
 }
 
 /// <summary>
@@ -58,38 +54,23 @@ public class UserServices : IUserServices
     /// <param name="username">User username or email</param>
     /// <param name="password">user password in plain text it will be hashed later</param>
     /// <returns>JWT token</returns>
-    async Task<string> IUserServices.LoginUserAsync(string username, string password)
+    async Task<TokensDto> IUserServices.LoginUserAsync(string username, string password)
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-        if (user == null) return "User not found";
+        if (user == null) throw new Exception("Login failed");
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
-        if (result == PasswordVerificationResult.Failed) return "Invalid password";
-        return GenerateJwtToken(user);
-    }
-
-    private string GenerateJwtToken(User user)
-    {
-        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        Byte[] key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]);
-        SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+        if (result == PasswordVerificationResult.Failed) throw new Exception("Login failed");
+        return new TokensDto()
         {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-            }),
-            Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(_configuration["JWT:ExpiryInDays"])),
-            SigningCredentials =
-                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            JwtToken = await TokenHelper.GenerateJwtToken(user),
+            RefreshToken = TokenHelper.GenerateRefreshToken()
         };
-        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
     }
 
-    public async Task<TokensDto> RefreshJwtTokenAsync(string jwtToken, string refreshToken)
+    public async Task<string> RefreshJwtTokenAsync(string refreshToken)
     {
-        ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(refreshToken);
+        ClaimsPrincipal? principal = TokenHelper.GetPrincipalFromExpiredToken(refreshToken);
         string userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
         User user = await _context.Users.FirstOrDefaultAsync(u => Equals(u.Id, userId));
         if (user == null)
@@ -97,42 +78,7 @@ public class UserServices : IUserServices
             throw new Exception("User not found");
         }
 
-        jwtToken = GenerateJwtToken(user);
-        string newRefreshToken = GenerateRefreshToken();
-
-        return new TokensDto()
-        {
-            JwtToken = jwtToken,
-            RefreshToken = newRefreshToken
-        };
-    }
-
-    private string GenerateRefreshToken()
-    {
-        byte[] randomNumber = new byte[32];
-        using RandomNumberGenerator? rng = RandomNumberGenerator.Create();
-        rng.GetBytes(randomNumber);
-        return Convert.ToBase64String(randomNumber);
-    }
-
-    private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
-    {
-        TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = false,
-            ValidateIssuer = false,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]))
-        };
-
-        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
-        JwtSecurityToken? jwtSecurityToken = securityToken as JwtSecurityToken;
-        if (jwtSecurityToken == null
-            || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
-                StringComparison.InvariantCultureIgnoreCase))
-            throw new SecurityTokenException("Invalid token");
-
-        return principal;
+        return await TokenHelper.GenerateJwtToken(user);
     }
 
     /// <summary>
