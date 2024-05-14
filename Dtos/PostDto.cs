@@ -4,6 +4,7 @@ namespace POPPER_Server.Helpers;
 
 public class PostDto
 {
+    public string Guid { get; set; }
     public string Title { get; set; }
 
     public string Description { get; set; }
@@ -15,7 +16,7 @@ public class PostDto
     /// </summary>
     public string Duration { get; set; }
 
-    public int UserId { get; set; }
+    public string UserGuid { get; set; }
 
     public int Likes { get; set; }
 
@@ -25,5 +26,5 @@ public class PostDto
 
     public List<IngridientDto> Ingredients { get; set; }
 
-    public List<StepDto> Steps { get; set; } 
+    public List<StepDto> Steps { get; set; }
 }

@@ -23,5 +23,12 @@ public class MapperProfile : Profile
         CreateMap<User, UserDto>();
         CreateMap<UserDto, User>()
             .ForMember(dest => dest.Guid, opt => opt.Ignore());
+
+        CreateMap<Post, PostDto>()
+            .ForMember(dest => dest.UserGuid, opt => opt.MapFrom(src => src.User.Guid))
+            .ForMember(dest => dest.Likes, opt => opt.MapFrom(src => src.Likes.Count))
+            .ForMember(dest => dest.viewCount, opt => opt.MapFrom(src => src.Views.Count))
+            .ForMember(dest => dest.SavedCount, opt => opt.MapFrom(src => src.Saveds.Count))
+            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.ToString("g")));
     }
 }
