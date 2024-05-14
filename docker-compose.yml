@@ -36,6 +36,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5029:5029"
+    depends_on:
+      - mongo
+      - minio
+      - adminer
+      - db
+    restart: on-failure
+    stop_grace_period: 5s
 volumes:
   mongodb_data_container:
   minio_storage:  #TODO Define the data volume for MinIO storage
