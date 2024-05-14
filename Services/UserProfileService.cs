@@ -16,7 +16,6 @@ public class UserProfileService : IUserProfileService
 {
     private readonly IMinioClient _minioClient;
 
-    //TODO check for contentType 
     private const string BucketName = "profile-pictures";
 
     public UserProfileService(IMinioClient minioClient)
@@ -30,7 +29,6 @@ public class UserProfileService : IUserProfileService
         {
             await CreateIfBucketNotExists();
             string filePath = Path.GetTempFileName();
-            //TODO handle file extension differently
             await using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await picture.File.CopyToAsync(stream);
@@ -44,7 +42,7 @@ public class UserProfileService : IUserProfileService
 
             _ = await _minioClient.PutObjectAsync(putObject);
         }
-        catch (Exception e)
+        catch 
         {
             return false;
         }
@@ -82,16 +80,15 @@ public class UserProfileService : IUserProfileService
         return file;
     }
 
-
     private async Task CreateIfBucketNotExists()
     {
         BucketExistsArgs? bukerArgs = new BucketExistsArgs()
             .WithBucket(BucketName);
 
-        bool b = await _minioClient.BucketExistsAsync(bukerArgs)
+        bool bucketExists = await _minioClient.BucketExistsAsync(bukerArgs)
             .ConfigureAwait(false);
 
-        if (!b)
+        if (!bucketExists)
         {
             MakeBucketArgs newBucket = new MakeBucketArgs()
                 .WithBucket(BucketName);
