@@ -7,6 +7,8 @@ public partial class Post
 {
     public int Id { get; set; }
 
+    public string Guid { get; set; } = System.Guid.NewGuid().ToString();
+
     public string Title { get; set; } = null!;
 
     public string Description { get; set; } = null!;

@@ -32,6 +32,7 @@ create table if not exists Following
 create table if not exists Post
 (
     id          int auto_increment,
+    Guid nvarchar(25) not null,
     Title       nvarchar(255) not null,
     Description nvarchar(255) not null,
     MediaGuid   nvarchar(255) not null,

@@ -133,6 +133,7 @@ public partial class PopperdbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.Duration).HasColumnType("time");
+            entity.Property(e => e.Guid).HasMaxLength(25);
             entity.Property(e => e.MediaGuid).HasMaxLength(255);
             entity.Property(e => e.Title).HasMaxLength(255);
 
