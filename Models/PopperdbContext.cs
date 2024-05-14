@@ -47,6 +47,7 @@ public partial class PopperdbContext : DbContext
             entity.HasIndex(e => e.UserId, "UserId");
 
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Guid).HasMaxLength(50);
             entity.Property(e => e.Text).HasMaxLength(255);
 
             entity.HasOne(d => d.Post).WithMany(p => p.Comments)
@@ -173,7 +174,6 @@ public partial class PopperdbContext : DbContext
             entity.HasIndex(e => e.PostId, "PostId");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Step1).HasColumnName("Step");
             entity.Property(e => e.Text).HasMaxLength(255);
 
             entity.HasOne(d => d.Post).WithMany(p => p.Steps)

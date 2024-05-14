@@ -32,7 +32,7 @@ create table if not exists Following
 create table if not exists Post
 (
     id          int auto_increment,
-    Guid nvarchar(25) not null,
+    Guid        nvarchar(25)  not null,
     Title       nvarchar(255) not null,
     Description nvarchar(255) not null,
     MediaGuid   nvarchar(255) not null,
@@ -47,7 +47,7 @@ create table if not exists Ingredients
     id     int auto_increment,
     Text   nvarchar(255) not null,
     Unit   nvarchar(20)  not null,
-    Amount int           not null,
+    Amount double not null,
     PostId int           not null,
     foreign key (PostId) references Post (id),
     primary key (id)
@@ -86,7 +86,7 @@ create table if not exists Likes
 create table if not exists Steps
 (
     id     int auto_increment,
-    Step   int           not null,
+    StepNumber int           not null,
     Text   nvarchar(255) not null,
     PostId int           not null,
     foreign key (PostId) references Post (id),
@@ -96,8 +96,9 @@ create table if not exists Steps
 create table if not exists Comments
 (
     id     int auto_increment,
-    UserId int not null,
-    PostId int not null,
+    Guid   nvarchar(50) not null,
+    UserId int          not null,
+    PostId int          not null,
     Text   nvarchar(255),
     Rating int,
     foreign key (UserId) references Users (id),

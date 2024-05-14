@@ -11,7 +11,7 @@ public partial class Ingredient
 
     public string Unit { get; set; } = null!;
 
-    public int Amount { get; set; }
+    public double Amount { get; set; }
 
     public int PostId { get; set; }
 

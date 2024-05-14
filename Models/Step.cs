@@ -7,7 +7,7 @@ public partial class Step
 {
     public int Id { get; set; }
 
-    public int Step1 { get; set; }
+    public int StepNumber { get; set; }
 
     public string Text { get; set; } = null!;
 

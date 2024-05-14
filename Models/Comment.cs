@@ -7,6 +7,8 @@ public partial class Comment
 {
     public int Id { get; set; }
 
+    public string Guid { get; set; } = System.Guid.NewGuid().ToString(); 
+
     public int UserId { get; set; }
 
     public int PostId { get; set; }
