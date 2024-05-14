@@ -30,5 +30,11 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.viewCount, opt => opt.MapFrom(src => src.Views.Count))
             .ForMember(dest => dest.SavedCount, opt => opt.MapFrom(src => src.Saveds.Count))
             .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.ToString("g")));
+
+        CreateMap<NewPostDto, Post>()
+            .ForMember(dest => dest.Guid, opt => opt.Ignore())
+            .ForMember(dest => dest.Duration, opt => opt.Ignore())
+            .ForMember(dest => dest.Steps, opt => opt.Ignore())
+            .ForMember(dest => dest.Ingredients, opt => opt.Ignore());
     }
 }
