@@ -15,7 +15,7 @@ MongoClient mongoClient = new(builder.Configuration.GetConnectionString("MongoDb
 builder.Services.AddSingleton(mongoClient.GetDatabase("test"));
 
 builder.Services.AddSingleton<PopperdbContext>(_
-    => new PopperdbContext(builder.Configuration.GetConnectionString("MySqlDb")));
+    => new PopperdbContext());
 
 string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';');
 IMinioClient minioClient = new MinioClient()
