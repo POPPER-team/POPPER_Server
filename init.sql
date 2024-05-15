@@ -5,13 +5,13 @@ use POPPERDB;
 create table if not exists Users
 (
     id             int auto_increment,
-    Guid           nvarchar(25)  Not Null,
-    FirstName      nvarchar(255) Not Null,
-    LastName       nvarchar(255) Not Null,
-    Username       nvarchar(255) Not Null,
-    Password       nvarchar(255) Not Null,
-    Created        date          Not Null,
-    DateOfBirth    date          Null,
+    Guid           nvarchar(25)  not null,
+    FirstName      nvarchar(255) not null,
+    LastName       nvarchar(255) not null,
+    Username       nvarchar(255) not null,
+    Password       nvarchar(255) not null,
+    Created        date          not null,
+    DateOfBirth    date          null,
     Status         nvarchar(255),
     WebLink        nvarchar(255),
     PreferredUnits nvarchar(255),
@@ -22,8 +22,8 @@ create table if not exists Users
 create table if not exists Following
 (
     id          int auto_increment,
-    UserID      int Not Null,
-    FollowingID int Not Null,
+    UserID      int not null,
+    FollowingID int not null,
     Primary key (id),
     foreign key (UserID) references Users (id),
     foreign key (FollowingID) references Users (id)
