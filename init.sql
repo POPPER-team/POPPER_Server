@@ -5,7 +5,7 @@ use POPPERDB;
 create table if not exists Users
 (
     id             int auto_increment,
-    Guid           nvarchar(25)  not null,
+    Guid           nvarchar(50)  not null,
     FirstName      nvarchar(255) not null,
     LastName       nvarchar(255) not null,
     Username       nvarchar(255) not null,
@@ -32,7 +32,7 @@ create table if not exists Following
 create table if not exists Post
 (
     id          int auto_increment,
-    Guid        nvarchar(25)  not null,
+    Guid        nvarchar(50)  not null,
     Title       nvarchar(255) not null,
     Description nvarchar(255) not null,
     MediaGuid   nvarchar(255) not null,

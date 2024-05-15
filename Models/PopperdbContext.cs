@@ -134,7 +134,7 @@ public partial class PopperdbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.Duration).HasColumnType("time");
-            entity.Property(e => e.Guid).HasMaxLength(25);
+            entity.Property(e => e.Guid).HasMaxLength(50);
             entity.Property(e => e.MediaGuid).HasMaxLength(255);
             entity.Property(e => e.Title).HasMaxLength(255);
 
@@ -190,7 +190,7 @@ public partial class PopperdbContext : DbContext
             entity.Property(e => e.Created).HasColumnType("date");
             entity.Property(e => e.DateOfBirth).HasColumnType("date");
             entity.Property(e => e.FirstName).HasMaxLength(255);
-            entity.Property(e => e.Guid).HasMaxLength(25);
+            entity.Property(e => e.Guid).HasMaxLength(50);
             entity.Property(e => e.Language).HasMaxLength(255);
             entity.Property(e => e.LastName).HasMaxLength(255);
             entity.Property(e => e.Password).HasMaxLength(255);
