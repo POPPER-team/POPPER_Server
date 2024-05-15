@@ -11,15 +11,11 @@ namespace POPPER_Server.Helpers;
 
 public static class TokenHelper
 {
-    private static PopperdbContext _context;
-    private static IConfiguration _configuration;
-    private static ISessionService _session;
+    private static IServiceProvider _serviceProvider;
 
     public static void ProvideService(IServiceProvider serviceProvider)
     {
-        _context = serviceProvider.GetRequiredService<PopperdbContext>();
-        _configuration = serviceProvider.GetRequiredService<IConfiguration>();
-        _session = serviceProvider.GetRequiredService<ISessionService>();
+        _serviceProvider = serviceProvider;
     }
 
     public static string GenerateRefreshToken()
@@ -32,15 +28,18 @@ public static class TokenHelper
 
     public static async Task<string> GenerateJwtToken(User user)
     {
+        IConfiguration _configuration = _serviceProvider.GetRequiredService<IConfiguration>();
+        ISessionService _session = _serviceProvider.GetRequiredService<ISessionService>();
+
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         Byte[] key = Encoding.ASCII.GetBytes(_configuration["JWT:SecureKey"]);
-        string sessionGuid= await _session.GetOrCreateSession(user);
+        string sessionGuid = await _session.GetOrCreateSession(user);
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim("UserGuid", user.Guid),
-                new Claim("SessionGuid",sessionGuid)
+                new Claim("SessionGuid", sessionGuid)
             }),
             Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(_configuration["JWT:ExpiryInDays"])),
             SigningCredentials =
@@ -52,6 +51,8 @@ public static class TokenHelper
 
     public static async Task<string> RefreshJwtTokenAsync(string refreshToken)
     {
+        PopperdbContext _context = _serviceProvider.GetRequiredService<PopperdbContext>();
+
         ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(refreshToken);
         string userId = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
         User user = await _context.Users.FirstOrDefaultAsync(u => Equals(u.Id, userId));
@@ -63,6 +64,8 @@ public static class TokenHelper
 
     public static ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
+        IConfiguration _configuration = _serviceProvider.GetRequiredService<IConfiguration>();
+
         TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = false,
