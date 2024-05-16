@@ -17,6 +17,7 @@ string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';')
 
 //Services
 builder.Services.AddAutoMapper(typeof(MapperProfile));
+//TODO check if mongo is propperly added
 builder.Services.AddScoped<IMongoDatabase>(_ =>
     new MongoClient(builder.Configuration.GetConnectionString("MongoDb")).GetDatabase("Popper_session"));
 builder.Services.AddDbContext<PopperdbContext>(options =>
