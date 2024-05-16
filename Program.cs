@@ -17,15 +17,21 @@ string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';')
 
 //Services
 builder.Services.AddAutoMapper(typeof(MapperProfile));
-//TODO check if mongo is propperly added
-builder.Services.AddScoped<IMongoDatabase>(_ =>
-    new MongoClient(builder.Configuration.GetConnectionString("MongoDb")).GetDatabase("Popper_session"));
+
+builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(builder.Configuration.GetConnectionString("MongoDb")));
+
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+    sp.GetRequiredService<IMongoClient>()
+        .GetDatabase("Popper_session")
+);
 builder.Services.AddDbContext<PopperdbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("MySqlDb")));
+    options.UseMySQL(builder.Configuration.GetConnectionString("MySqlDb"))
+);
 builder.Services.AddMinio(options => options
     .WithEndpoint(minioCS[0])
     .WithCredentials(minioCS[1], minioCS[2])
-    .Build()
+    //TODO This might be a problem in future, >:( but to configure certificate is hard so i won't https://docs.minio.io/docs/how-to-secure-access-to-minio-server-with-tls.html
+    .WithSSL(false)
 );
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

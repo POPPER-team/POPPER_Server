@@ -41,7 +41,7 @@ public class UserDetailsController : ControllerBase
     {
         return Ok(_mapper.Map<List<UserDto>>(await _userServices.SearchUserAsync(searchString)));
     }
-
+//TODO looks like the file uplod does not work
     [HttpPut("[action]")]
     public async Task<IActionResult> UploadProfilePicture([FromForm] FileUploadDto file)
     {
@@ -49,7 +49,7 @@ public class UserDetailsController : ControllerBase
         if (!success) return BadRequest();
         return Ok();
     }
-
+//TODO return 404 for picture not found
     [HttpGet("[action]")]
     public async Task<IActionResult> DownloadProfilePicture(string? userGuid)
     {
