@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace POPPER_Server.Models;
+﻿namespace POPPER_Server.Models;
 
 public partial class User
 {
     public int Id { get; set; }
 
-    public string Guid { get; set; } = System.Guid.NewGuid().ToString(); 
+    public string Guid { get; set; } = System.Guid.NewGuid().ToString();
 
     public string FirstName { get; set; } = null!;
 
@@ -17,7 +14,7 @@ public partial class User
 
     public string Password { get; set; } = null!;
 
-    public DateTime Created { get; set; }
+    public DateTime Created { get; set; } = DateTime.Now;
 
     public DateTime? DateOfBirth { get; set; }
 

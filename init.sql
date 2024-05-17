@@ -10,7 +10,7 @@ create table if not exists Users
     LastName       nvarchar(255) not null,
     Username       nvarchar(255) not null,
     Password       nvarchar(255) not null,
-    Created        date          not null,
+    Created        datetime      not null,
     DateOfBirth    date          null,
     Status         nvarchar(255),
     WebLink        nvarchar(255),
@@ -47,7 +47,7 @@ create table if not exists Ingredients
     id     int auto_increment,
     Text   nvarchar(255) not null,
     Unit   nvarchar(20)  not null,
-    Amount double not null,
+    Amount double        not null,
     PostId int           not null,
     foreign key (PostId) references Post (id),
     primary key (id)
@@ -85,10 +85,10 @@ create table if not exists Likes
 
 create table if not exists Steps
 (
-    id     int auto_increment,
+    id         int auto_increment,
     StepNumber int           not null,
-    Text   nvarchar(255) not null,
-    PostId int           not null,
+    Text       nvarchar(255) not null,
+    PostId     int           not null,
     foreign key (PostId) references Post (id),
     primary key (id)
 );

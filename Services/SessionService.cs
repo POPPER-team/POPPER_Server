@@ -14,43 +14,46 @@ public interface ISessionService
 public class SessionService : ISessionService
 {
     private readonly IMongoDatabase _mongoDB;
-    private const string SessionDatabaseName ="Sessions";
+    private const string ObjecName = "Sessions";
+
     public SessionService(IMongoDatabase session)
     {
         _mongoDB = session;
     }
 
-   private async Task<Session> CreateNewSession(User user)
+    private async Task<Session> CreateNewSession(User user)
     {
         Session newSession = new Session()
         {
             UserGuid = user.Guid
         };
-        await _mongoDB.GetCollection<Session>(SessionDatabaseName).InsertOneAsync(newSession);
+        await _mongoDB
+            .GetCollection<Session>(ObjecName)
+            .InsertOneAsync(newSession);
         return newSession;
     }
 
     public async Task<string> GetOrCreateSession(User user)
     {
         FilterDefinition<Session> filter = Builders<Session>.Filter.Eq(s => s.UserGuid, user.Guid);
-        Session session = await _mongoDB.GetCollection<Session>(SessionDatabaseName).Find(filter).FirstOrDefaultAsync();
+        Session session = await _mongoDB.GetCollection<Session>(ObjecName).Find(filter).FirstOrDefaultAsync();
         if (session == null) return (await CreateNewSession(user)).SessionGuid;
         return session.SessionGuid;
     }
 
     public async Task<Session> GetSessionAsync(string sessionGuid)
     {
-        FilterDefinition<Session> filter = Builders<Session>.Filter.Eq(s => s.SessionGuid,sessionGuid);
-        Session session = await _mongoDB.GetCollection<Session>(SessionDatabaseName).Find(filter).FirstOrDefaultAsync();
+        FilterDefinition<Session> filter = Builders<Session>.Filter.Eq(s => s.SessionGuid, sessionGuid);
+        Session session = await _mongoDB.GetCollection<Session>(ObjecName).Find(filter).FirstOrDefaultAsync();
         return session;
     }
 
     //TODO Any new field should have its own method to update 
     public async Task<string> UpdateText(string sessionGuid, string text)
     {
-        FilterDefinition<Session> filter = Builders<Session>.Filter.Eq(s => s.SessionGuid,sessionGuid);
-        UpdateDefinition<Session> update = Builders<Session>.Update.Set(s => s.text ,text);
-        await _mongoDB.GetCollection<Session>(SessionDatabaseName).UpdateOneAsync(filter,update);
+        FilterDefinition<Session> filter = Builders<Session>.Filter.Eq(s => s.SessionGuid, sessionGuid);
+        UpdateDefinition<Session> update = Builders<Session>.Update.Set(s => s.text, text);
+        await _mongoDB.GetCollection<Session>(ObjecName).UpdateOneAsync(filter, update);
         Session session = await GetSessionAsync(sessionGuid);
         return session.text;
     }

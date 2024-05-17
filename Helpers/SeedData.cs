@@ -15,6 +15,7 @@ public static class SeedData
         PopperdbContext context = services.GetRequiredService<PopperdbContext>();
         IMapper mapper = services.GetRequiredService<IMapper>();
         IPasswordHasher<User> passwordHasher = services.GetRequiredService<IPasswordHasher<User>>();
+        
         List<NewUserDto> usersDtos = new List<NewUserDto>()
         {
             new NewUserDto()

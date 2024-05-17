@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Minio;
@@ -11,24 +12,27 @@ using POPPER_Server.Models;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-MongoClient mongoClient = new(builder.Configuration.GetConnectionString("MongoDb"));
-builder.Services.AddSingleton(mongoClient.GetDatabase("test"));
-
-builder.Services.AddSingleton<PopperdbContext>(_
-    => new PopperdbContext());
-
+string? secureKey = builder.Configuration["JWT:SecureKey"];
 string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';');
-IMinioClient minioClient = new MinioClient()
-    .WithEndpoint(minioCS[0])
-    .WithCredentials(minioCS[1], minioCS[2])
-    .Build();
-builder.Services.AddSingleton(minioClient);
 
 //Services
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
-// Configure JWT security services
-string? secureKey = builder.Configuration["JWT:SecureKey"];
+builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(builder.Configuration.GetConnectionString("MongoDb")));
+
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+    sp.GetRequiredService<IMongoClient>()
+        .GetDatabase("Popper_session")
+);
+builder.Services.AddDbContext<PopperdbContext>(options =>
+    options.UseMySQL(builder.Configuration.GetConnectionString("MySqlDb"))
+);
+builder.Services.AddMinio(options => options
+    .WithEndpoint(minioCS[0])
+    .WithCredentials(minioCS[1], minioCS[2])
+    //TODO This might be a problem in future, >:( but to configure certificate is hard so i won't https://docs.minio.io/docs/how-to-secure-access-to-minio-server-with-tls.html
+    .WithSSL(false)
+);
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
@@ -42,7 +46,7 @@ builder.Services
         };
     });
 
-//Scoped services
+//User added services
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IUserServices, UserServices>();
@@ -91,8 +95,10 @@ builder.Services.AddSwaggerGen(option =>
 
 WebApplication? app = builder.Build();
 
-TokenHelper.ProvideService(app.Services);
-UserHelper.ProvideService(app.Services);
+IServiceProvider services = app.Services.CreateScope().ServiceProvider;
+TokenHelper.ProvideService(services);
+UserHelper.ProvideService(services);
+//TODO test apis with new config for services
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
