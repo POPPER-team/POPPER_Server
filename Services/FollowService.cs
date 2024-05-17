@@ -1,7 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using MongoDB.Driver;
-using POPPER_Server.Dtos;
 using POPPER_Server.Models;
 
 namespace POPPER_Server.Services;
@@ -25,20 +22,21 @@ public class FollowService : IFollowService
 
     public async Task FollowUserAsync(User user, string followingGuid)
     {
-       User followUser = await _context.Users.FirstOrDefaultAsync(u => u.Guid == followingGuid);
+        User followUser = await _context.Users.FirstOrDefaultAsync(u => u.Guid == followingGuid);
 
-       if (user.Guid == followingGuid)
-       {
-              throw new Exception("You can't follow yourself");
-       }
+        if (user.Guid == followingGuid)
+        {
+            throw new Exception("You can't follow yourself");
+        }
 
-       Following existingFollow = await _context.Followings.FirstOrDefaultAsync(f => f.UserId == user.Id && f.FollowingId == followUser.Id);
+        Following existingFollow =
+            await _context.Followings.FirstOrDefaultAsync(f => f.UserId == user.Id && f.FollowingId == followUser.Id);
 
-       if (existingFollow != null)
-       {
-           throw new Exception("You are already following this user!");
-       }
-       
+        if (existingFollow != null)
+        {
+            throw new Exception("You are already following this user!");
+        }
+
         Following follow = new Following()
         {
             UserId = user.Id,
@@ -46,7 +44,7 @@ public class FollowService : IFollowService
         };
 
         _context.Followings.Add(follow);
-        
+
         await _context.SaveChangesAsync();
     }
 
@@ -54,16 +52,18 @@ public class FollowService : IFollowService
     {
         User followUser = await _context.Users.FirstOrDefaultAsync(u => u.Guid == followingGuid);
         Following follow = await _context.Followings.FirstOrDefaultAsync(f =>
-            f.UserId == user.Id && f.FollowingId == followUser.Id);
-        
+            f.UserId == user.Id && f.FollowingId == followUser.Id
+        );
+
         if (follow == null)
         {
-            return;
+            throw new Exception("You don't follow the user");
         }
-        
+
         _context.Followings.Remove(follow);
         await _context.SaveChangesAsync();
     }
+
     public async Task<List<User>> GetFollowersAsync(User user)
     {
         return await _context.Followings
@@ -73,6 +73,7 @@ public class FollowService : IFollowService
             .AsNoTracking()
             .ToListAsync();
     }
+
     public async Task<List<User>> GetFollowingAsync(User user)
     {
         return await _context.Followings

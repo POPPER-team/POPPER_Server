@@ -27,7 +27,15 @@ public class FollowController : ControllerBase
     public async Task<IActionResult> UnFollowUser([FromRoute] string followingGuid)
     {
         User user = await Request.GetUserAsync();
-        await _followService.UnFollowUserAsync(user, followingGuid);
+        try
+        {
+            await _followService.UnFollowUserAsync(user, followingGuid);
+        }
+        catch (Exception e)
+        {
+            return NotFound(e.Message);
+        }
+
         return Ok();
     }
 
