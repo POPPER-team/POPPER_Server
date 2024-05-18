@@ -2,17 +2,15 @@
 WORKDIR /app
 
 COPY ["POPPER_Server.csproj", "./"]
-RUN dotnet restore "POPPER_Server.csproj"
+# RUN dotnet restore "POPPER_Server.csproj"
 
 COPY . .
 # Add .env and appsetings.json
 # Expose ports for the application
-EXPOSE 8080
-EXPOSE 8443
+EXPOSE 5029
+ENTRYPOINT ["dotnet", "run", "--urls", "http://*:5029"]
+ENV ASPNETCORE_URLS=http://*:5029
 ENV ASPNETCORE_ENVIRONMENT=Development
-
-ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile"]
-
 #releasse config
 #FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 #WORKDIR /app
