@@ -17,6 +17,8 @@ public partial class Post
 
     public TimeSpan Duration { get; set; }
 
+    public DateTime Created { get; set; } = DateTime.Now;
+
     public int UserId { get; set; }
 
     public virtual ICollection<Comment> Comments { get; } = new List<Comment>();

@@ -17,6 +17,8 @@ public partial class Comment
 
     public int? Rating { get; set; }
 
+    public DateTime Created { get; set; } = DateTime.Now;
+
     public virtual Post Post { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

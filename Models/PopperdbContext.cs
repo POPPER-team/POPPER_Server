@@ -34,7 +34,7 @@ public partial class PopperdbContext : DbContext
     public virtual DbSet<View> Views { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySQL("Name=ConnectionStrings:MySqlDb");
+        => optionsBuilder.UseMySQL("name=ConnectionStrings:MySqlDb");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,6 +47,7 @@ public partial class PopperdbContext : DbContext
             entity.HasIndex(e => e.UserId, "UserId");
 
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Created).HasColumnType("datetime");
             entity.Property(e => e.Guid).HasMaxLength(50);
             entity.Property(e => e.Text).HasMaxLength(255);
 
@@ -132,6 +133,7 @@ public partial class PopperdbContext : DbContext
             entity.HasIndex(e => e.UserId, "UserId");
 
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Created).HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.Duration).HasColumnType("time");
             entity.Property(e => e.Guid).HasMaxLength(50);
