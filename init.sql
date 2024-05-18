@@ -10,7 +10,7 @@ create table if not exists Users
     LastName       nvarchar(255) not null,
     Username       nvarchar(255) not null,
     Password       nvarchar(255) not null,
-    Created        date          not null,
+    Created        datetime      not null,
     DateOfBirth    date          null,
     Status         nvarchar(255),
     WebLink        nvarchar(255),

@@ -16,13 +16,15 @@ public class MapperProfile : Profile
 
         CreateMap<UserDetailsDto, User>()
             .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => DateTime.Parse(src.DateOfBirth)))
-            .ForMember(dest => dest.Guid, opt => opt.Ignore());
+            .ForMember(dest => dest.Guid, opt => opt.Ignore())
+            .ForMember(dest => dest.Created, opt => opt.MapFrom(src => src.Created.ToString()));
         CreateMap<User, UserDetailsDto>()
             .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth.ToString()));
 
         CreateMap<User, UserDto>();
         CreateMap<UserDto, User>()
-            .ForMember(dest => dest.Guid, opt => opt.Ignore());
+            .ForMember(dest => dest.Guid, opt => opt.Ignore())
+            .ForMember(dest => dest.Created, opt => opt.Ignore());
 
         CreateMap<Post, PostDto>()
             .ForMember(dest => dest.UserGuid, opt => opt.MapFrom(src => src.User.Guid))

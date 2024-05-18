@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Minio;
 using Minio.DataModel.Args;
+using Minio.DataModel.Response;
 using POPPER_Server.Dtos;
 using POPPER_Server.Models;
 
@@ -40,10 +41,11 @@ public class UserProfileService : IUserProfileService
                 .WithFileName(filePath)
                 .WithContentType(picture.File.ContentType);
 
-            _ = await _minioClient.PutObjectAsync(putObject);
+            PutObjectResponse result = await _minioClient.PutObjectAsync(putObject).ConfigureAwait(true);
         }
-        catch 
+        catch (Exception e)
         {
+            Console.WriteLine(e);
             return false;
         }
 

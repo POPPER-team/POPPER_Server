@@ -8,17 +8,17 @@ namespace POPPER_Server.Helpers;
 
 public static class UserHelper
 {
-    private static PopperdbContext _context;
-    private static ISessionService _session;
+    private static IServiceProvider _serviceProvider;
 
     public static void ProvideService(IServiceProvider services)
     {
-        _context = services.GetRequiredService<PopperdbContext>();
-        _session = services.GetRequiredService<ISessionService>();
+        _serviceProvider = services;
     }
 
     public static async Task<User> GetUserAsync(this HttpRequest request)
     {
+        PopperdbContext _context = _serviceProvider.GetRequiredService<PopperdbContext>();
+
         string userGuid = RetrieveFromRequest("UserGuid", request);
         if (userGuid == null) throw new Exception("User not found");
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
@@ -28,9 +28,11 @@ public static class UserHelper
 
     public static async Task<string> GetSessionGuidAsync(this HttpRequest request)
     {
+        ISessionService _session = _serviceProvider.GetRequiredService<ISessionService>();
+
         string sessionGuid = RetrieveFromRequest("SessionGuid", request);
         if (sessionGuid == null) throw new Exception("Session guid does not exists");
-        return (await _session.GetSessionAsync(sessionGuid)).SessionGuid; 
+        return (await _session.GetSessionAsync(sessionGuid)).SessionGuid;
     }
 
     public static ClaimsPrincipal GetPrincipalFromToken(string token)
