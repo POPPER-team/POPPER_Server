@@ -2,7 +2,7 @@
 WORKDIR /app
 
 COPY ["POPPER_Server.csproj", "./"]
-RUN dotnet restore "POPPER_Server.csproj"
+# RUN dotnet restore "POPPER_Server.csproj"
 
 COPY . .
 # Add .env and appsetings.json

@@ -22,7 +22,6 @@ public class MinioService : IMinioService
     {
         _minioClient = minioClient;
     }
-
     public async Task UploadFileAsync(string bucketName, string objectName, string filePath)
     {
         var contentType = "application/zip";

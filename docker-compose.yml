@@ -1,18 +1,13 @@
-version: '3.8'
 services:
   mongo:
     image: mongo
     ports:
       - "27017:27017"
-    volumes:
-      - mongodb_data_container:/data/db
   minio:
     image: minio/minio
     ports:
       - "9000:9000"
       - "9001:9001"
-    volumes:
-      - minio_storage:/data
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -30,19 +25,17 @@ services:
     image: adminer
     ports:
       - "8081:8081"
-  popper_server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "5029:5029"
-    depends_on:
-      - mongo
-      - minio
-      - adminer
-      - db
-    restart: on-failure
-    stop_grace_period: 5s
-volumes:
-  mongodb_data_container:
-  minio_storage:  #TODO Define the data volume for MinIO storage
+#  Uncomment for running in docker container
+#  popper_server:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "5029:5029"
+#    depends_on:
+#      - mongo
+#      - minio
+#      - adminer
+#      - db
+#    restart: on-failure
+#    stop_grace_period: 5s

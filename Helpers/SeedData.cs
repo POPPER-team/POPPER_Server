@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using POPPER_Server.Dtos;
 using POPPER_Server.Models;
-using POPPER_Server.Services;
 
 namespace POPPER_Server.Helpers;
 
@@ -16,6 +15,7 @@ public static class SeedData
         PopperdbContext context = services.GetRequiredService<PopperdbContext>();
         IMapper mapper = services.GetRequiredService<IMapper>();
         IPasswordHasher<User> passwordHasher = services.GetRequiredService<IPasswordHasher<User>>();
+        
         List<NewUserDto> usersDtos = new List<NewUserDto>()
         {
             new NewUserDto()
@@ -70,6 +70,7 @@ public static class SeedData
         {
             users[i].Password = passwordHasher.HashPassword(users[i], usersDtos[i].Password);
         }
+
         context.AddRange(users);
         context.SaveChanges();
         return app;
