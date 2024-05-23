@@ -18,7 +18,7 @@ public class UserAuthenticationController : ControllerBase
     }
 
     [HttpPost("[action]")]
-    public async Task<IActionResult> Login([FromForm] UserLoginDto userLoginDto)
+    public async Task<IActionResult> Login([FromQuery] UserLoginDto userLoginDto)
     {
         try
         {
