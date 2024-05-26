@@ -32,7 +32,7 @@ public class UserAuthenticationController : ControllerBase
     }
 
     [HttpPost("[action]")]
-    public async Task<IActionResult> Register([FromForm] NewUserDto userDto)
+    public async Task<IActionResult> Register([FromBody] NewUserDto userDto)
     {
         await _userServices.RegisterUserAsync(userDto);
         return Ok();
