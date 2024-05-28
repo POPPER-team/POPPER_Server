@@ -18,7 +18,7 @@ string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';')
 //Services
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
-// builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(builder.Configuration.GetConnectionString("MongoDb")));
+builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(builder.Configuration.GetConnectionString("MongoDb")));
 
 builder.Services.AddScoped<IMongoDatabase>(sp =>
     sp.GetRequiredService<IMongoClient>()
@@ -52,6 +52,7 @@ builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IPostService, PostService>();
 
 builder.Services.AddTransient<ISessionService, SessionService>();
 
