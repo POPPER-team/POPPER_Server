@@ -29,7 +29,7 @@ public class PostController : ControllerBase
     }
 
     [HttpGet("[action]")]
-    public IActionResult GetRecomendedPosts()
+    public IActionResult GetRecommendedPosts()
     {
         throw new NotImplementedException();
     }
