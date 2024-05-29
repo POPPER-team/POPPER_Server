@@ -4,6 +4,7 @@ using Minio;
 using Minio.DataModel.Args;
 using Minio.DataModel.Response;
 using POPPER_Server.Dtos;
+using POPPER_Server.Helpers;
 using POPPER_Server.Models;
 
 namespace POPPER_Server.Services;
@@ -32,13 +33,17 @@ public class PostService : IPostService
     public async Task CreatePost(User user, NewPostDto dto)
     {
         Post newPost = _mapper.Map<Post>(dto);
+//todo remove media guid 
 
+        newPost.MediaGuid = newPost.Guid;
+
+        newPost.UserId = user.Id;
         await CreateIfBucketNotExists();
 
         string filePath = Path.GetTempFileName();
         await using (var stream = new FileStream(filePath, FileMode.Create))
         {
-            await dto.Media.File.CopyToAsync(stream);
+            await dto.Media.CopyToAsync(stream);
         }
 
         try
@@ -47,7 +52,7 @@ public class PostService : IPostService
                 .WithBucket(BucketName)
                 .WithObject(newPost.Guid)
                 .WithFileName(filePath)
-                .WithContentType(dto.Media.File.ContentType);
+                .WithContentType(dto.Media.ContentType);
 
             PutObjectResponse result = await _minioClient.PutObjectAsync(putPostArgs).ConfigureAwait(true);
         }
@@ -55,10 +60,9 @@ public class PostService : IPostService
         {
             return;
         }
-
-
-
-        await _context.Posts.AddAsync(newPost).ConfigureAwait(false);
+//TODO ne inserta u bazu koji kurac
+        await _context.Posts.AddAsync(newPost);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<FileContentResult> GetPost(string guid)
@@ -89,6 +93,12 @@ public class PostService : IPostService
             FileDownloadName = $"{guid}.{ObjData.ContentType.Split("/")[1]}"
         };
         File.Delete(guid);
+
+
+       Post post = _context.Posts.FirstOrDefault(p => p.Guid == guid);
+//TODO It needs to return other post data
+      PostDto postDto  = _mapper.Map<PostDto>(post);
+
         return file;
     }
 

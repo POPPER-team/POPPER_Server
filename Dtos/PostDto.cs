@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using POPPER_Server.Dtos;
 
 namespace POPPER_Server.Helpers;
 
-public class PostDto
+public class PostDto  
 {
     public string Guid { get; set; }
     public string Title { get; set; }

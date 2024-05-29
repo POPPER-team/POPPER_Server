@@ -14,7 +14,7 @@ public class PostController : ControllerBase
         _postService = postService;
     }
     [HttpPost("[action]")]
-    public async Task<IActionResult> CreatePost([FromBody] NewPostDto dto)
+    public async Task<IActionResult> CreatePost([FromForm] NewPostDto dto)
     {
         User user = await Request.GetUserAsync();
         try
@@ -39,7 +39,7 @@ public class PostController : ControllerBase
     {
         try
         {
-            return Ok(await _postService.GetPost(guid));
+            return await _postService.GetPost(guid);
         }
         catch (Exception e)
         {
