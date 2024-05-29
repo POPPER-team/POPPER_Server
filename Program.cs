@@ -52,6 +52,7 @@ builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IPostService, PostService>();
 
 builder.Services.AddTransient<ISessionService, SessionService>();
 

@@ -45,6 +45,7 @@ public class UserProfileService : IUserProfileService
         }
         catch (Exception e)
         {
+            //TODO remove on relese
             Console.WriteLine(e);
             return false;
         }
