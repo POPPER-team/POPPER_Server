@@ -33,7 +33,7 @@ public class PostService : IPostService
     public async Task CreatePost(User user, NewPostDto dto)
     {
         Post newPost = _mapper.Map<Post>(dto);
-//todo remove media guid 
+        //todo remove media guid 
 
         newPost.MediaGuid = newPost.Guid;
 
@@ -60,7 +60,7 @@ public class PostService : IPostService
         {
             return;
         }
-//TODO ne inserta u bazu koji kurac
+        //TODO ne inserta u bazu koji kurac
         await _context.Posts.AddAsync(newPost);
         await _context.SaveChangesAsync();
     }
@@ -94,10 +94,9 @@ public class PostService : IPostService
         };
         File.Delete(guid);
 
-
-       Post post = _context.Posts.FirstOrDefault(p => p.Guid == guid);
-//TODO It needs to return other post data
-      PostDto postDto  = _mapper.Map<PostDto>(post);
+        Post post = _context.Posts.FirstOrDefault(p => p.Guid == guid);
+        //TODO It needs to return other post data
+        PostDto postDto = _mapper.Map<PostDto>(post);
 
         return file;
     }
