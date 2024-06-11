@@ -11,7 +11,8 @@ namespace POPPER_Server.Services;
 
 public interface IPostService
 {
-    public Task CreatePost(User user, NewPostDto dto);
+    public Task<Post> CreatePost(User user, NewPostDto dto);
+    public Task UploadMedaToPost(string postGuid, User user, IFormFile file);
     public Task<FileContentResult> GetPost(string guid);
 }
 
@@ -30,39 +31,47 @@ public class PostService : IPostService
         _minioClient = minio;
     }
 
-    public async Task CreatePost(User user, NewPostDto dto)
+    public async Task<Post> CreatePost(User user, NewPostDto dto)
     {
         Post newPost = _mapper.Map<Post>(dto);
-        //todo remove media guid 
-
-        newPost.MediaGuid = newPost.Guid;
-
         newPost.UserId = user.Id;
+        await _context.Posts.AddAsync(newPost);
+        await _context.SaveChangesAsync();
+        return newPost;
+    }
+
+    public async Task UploadMedaToPost(string postGuid, User user, IFormFile file)
+    {
+
+        Post post = _context.Posts.FirstOrDefault(p => p.Guid == postGuid);
+        if (post == null) throw new Exception("Post not found");
+
+        post.MediaGuid = Guid.NewGuid().ToString();
+
         await CreateIfBucketNotExists();
 
         string filePath = Path.GetTempFileName();
         await using (var stream = new FileStream(filePath, FileMode.Create))
         {
-            await dto.Media.CopyToAsync(stream);
+            await file.CopyToAsync(stream);
         }
 
         try
         {
             PutObjectArgs putPostArgs = new PutObjectArgs()
                 .WithBucket(BucketName)
-                .WithObject(newPost.Guid)
+                .WithObject(post.MediaGuid)
                 .WithFileName(filePath)
-                .WithContentType(dto.Media.ContentType);
+                .WithContentType(file.ContentType);
 
             PutObjectResponse result = await _minioClient.PutObjectAsync(putPostArgs).ConfigureAwait(true);
+
+            await _context.SaveChangesAsync();
         }
         catch (Exception e)
         {
             return;
         }
-        //TODO ne inserta u bazu koji kurac
-        await _context.Posts.AddAsync(newPost);
-        await _context.SaveChangesAsync();
     }
 
     public async Task<FileContentResult> GetPost(string guid)
@@ -103,6 +112,7 @@ public class PostService : IPostService
 
     private async Task CreateIfBucketNotExists()
     {
+        //TODO check does not upload the first file after creating bucket
         BucketExistsArgs? bukerArgs = new BucketExistsArgs()
             .WithBucket(BucketName);
 
