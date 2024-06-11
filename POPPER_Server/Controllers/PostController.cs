@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Dtos;
 using POPPER_Server.Helpers;
@@ -5,26 +6,46 @@ using POPPER_Server.Models;
 using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
+
 [Route("api/[controller]")]
 public class PostController : ControllerBase
 {
     private readonly IPostService _postService;
-    public PostController(IPostService postService)
+    private readonly IMapper _mapper;
+
+    public PostController(IPostService postService, IMapper mapper)
     {
         _postService = postService;
+        _mapper = mapper;
     }
+
     [HttpPost("[action]")]
-    public async Task<IActionResult> CreatePost([FromForm] NewPostDto dto)
+    public async Task<IActionResult> CreatePost([FromBody] NewPostDto dto)
     {
         User user = await Request.GetUserAsync();
         try
         {
-            await _postService.CreatePost(user, dto);
+            return Ok(_mapper.Map<PostDto>(await _postService.CreatePost(user, dto)));
         }
         catch (Exception e)
         {
             return BadRequest(e.Message);
         }
+    }
+
+    [HttpPost("[action]/{guid}")]
+    public async Task<IActionResult> UploadPostMedia([FromRoute] string guid, [FromForm] FileUploadDto file)
+    {
+        User user = await Request.GetUserAsync();
+        try
+        {
+            _postService.UploadMedaToPost(guid, user, file.File);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+
         return Ok();
     }
 

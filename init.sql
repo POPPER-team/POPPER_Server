@@ -35,7 +35,7 @@ create table if not exists Post
     Guid        nvarchar(50)  not null,
     Title       nvarchar(255) not null,
     Description nvarchar(255) not null,
-    MediaGuid   nvarchar(255) not null,
+    MediaGuid   nvarchar(255) null,
     Duration    TIME          not null,
     Created     DATETIME      not null,
     UserId      int           not null,

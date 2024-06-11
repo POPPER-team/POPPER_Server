@@ -13,7 +13,7 @@ public partial class Post
 
     public string Description { get; set; } = null!;
 
-    public string MediaGuid { get; set; } = null!;
+    public string? MediaGuid { get; set; }
 
     public TimeSpan Duration { get; set; }
 

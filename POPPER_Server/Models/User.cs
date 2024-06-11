@@ -1,4 +1,7 @@
-﻿namespace POPPER_Server.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace POPPER_Server.Models;
 
 public partial class User
 {
