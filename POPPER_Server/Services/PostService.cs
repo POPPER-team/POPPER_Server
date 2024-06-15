@@ -12,8 +12,8 @@ namespace POPPER_Server.Services;
 public interface IPostService
 {
     public Task<Post> CreatePost(User user, NewPostDto dto);
-    public Task UploadMedaToPost(string postGuid, User user, IFormFile file);
-    public Task<FileContentResult> GetPost(string guid);
+    public Task UploadMedaToPost(string postGuid, User user, FileUploadDto file);
+    public Task<FileContentResult> GetMedia(string guid);
 }
 
 public class PostService : IPostService
@@ -40,20 +40,26 @@ public class PostService : IPostService
         return newPost;
     }
 
-    public async Task UploadMedaToPost(string postGuid, User user, IFormFile file)
+    public async Task UploadMedaToPost(string postGuid, User user, FileUploadDto file)
     {
-
+        await CreateIfBucketNotExists();
         Post post = _context.Posts.FirstOrDefault(p => p.Guid == postGuid);
         if (post == null) throw new Exception("Post not found");
+        
+        if(post.MediaGuid != null) return;
 
         post.MediaGuid = Guid.NewGuid().ToString();
 
-        await CreateIfBucketNotExists();
-
         string filePath = Path.GetTempFileName();
-        await using (var stream = new FileStream(filePath, FileMode.Create))
+        try
         {
-            await file.CopyToAsync(stream);
+            using var stream = new FileStream(filePath, FileMode.Create);
+            file.File.CopyTo(stream);
+        }
+        catch
+        {
+            File.Delete(filePath);
+            throw new Exception("Cant copy the file");
         }
 
         try
@@ -62,37 +68,41 @@ public class PostService : IPostService
                 .WithBucket(BucketName)
                 .WithObject(post.MediaGuid)
                 .WithFileName(filePath)
-                .WithContentType(file.ContentType);
+                .WithContentType(file.File.ContentType);
 
             PutObjectResponse result = await _minioClient.PutObjectAsync(putPostArgs).ConfigureAwait(true);
-
-            await _context.SaveChangesAsync();
+            File.Delete(filePath);
         }
         catch (Exception e)
         {
+            Console.WriteLine(e);
             return;
+        }
+        finally
+        {
+            await _context.SaveChangesAsync();
         }
     }
 
-    public async Task<FileContentResult> GetPost(string guid)
+    public async Task<FileContentResult> GetMedia(string guid)
     {
         await CreateIfBucketNotExists();
         //TODO check if needed
         StatObjectArgs statPostArgs = new StatObjectArgs()
-          .WithBucket(BucketName)
-          .WithObject(guid);
+            .WithBucket(BucketName)
+            .WithObject(guid);
 
         _ = await _minioClient.StatObjectAsync(statPostArgs);
 
         GetObjectArgs getPostArgs = new GetObjectArgs()
-          .WithBucket(BucketName)
-          .WithObject(guid)
-          .WithCallbackStream(stream =>
-          {
-              using FileStream fileStream = File.Create(guid);
-              stream.CopyTo(fileStream);
-              stream.Dispose();
-          });
+            .WithBucket(BucketName)
+            .WithObject(guid)
+            .WithCallbackStream(stream =>
+            {
+                using FileStream fileStream = File.Create(guid);
+                stream.CopyTo(fileStream);
+                stream.Dispose();
+            });
 
         var ObjData = await _minioClient.GetObjectAsync(getPostArgs);
 
@@ -127,5 +137,4 @@ public class PostService : IPostService
                 .ConfigureAwait(true);
         }
     }
-
 }

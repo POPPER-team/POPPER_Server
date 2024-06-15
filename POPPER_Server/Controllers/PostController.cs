@@ -39,7 +39,7 @@ public class PostController : ControllerBase
         User user = await Request.GetUserAsync();
         try
         {
-            _postService.UploadMedaToPost(guid, user, file.File);
+            _postService.UploadMedaToPost(guid, user, file);
         }
         catch (Exception e)
         {
@@ -56,11 +56,24 @@ public class PostController : ControllerBase
     }
 
     [HttpGet("[action]/{guid}")]
-    public async Task<IActionResult> GetPost([FromRoute] string guid)
+    public async Task<IActionResult> GetPostData([FromRoute] string guid)
     {
         try
         {
-            return await _postService.GetPost(guid);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
+    }
+
+    [HttpGet("[action]/{guid}")]
+    public async Task<IActionResult> GetPostMedia([FromRoute] string guid)
+    {
+        try
+        {
+            return await _postService.GetMedia(guid);
         }
         catch (Exception e)
         {
