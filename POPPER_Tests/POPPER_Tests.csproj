@@ -22,4 +22,8 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\POPPER_Server\POPPER_Server.csproj" />
+    </ItemGroup>
+
 </Project>
