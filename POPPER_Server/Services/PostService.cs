@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Minio;
 using Minio.DataModel.Args;
 using Minio.DataModel.Response;
@@ -14,6 +15,8 @@ public interface IPostService
     public Task<Post> CreatePost(User user, NewPostDto dto);
     public Task UploadMedaToPost(string postGuid, User user, FileUploadDto file);
     public Task<FileContentResult> GetMedia(string guid);
+    public Post GetPost(string guid);
+    public Task<List<Post>> GetPosts();
 }
 
 public class PostService : IPostService
@@ -44,12 +47,15 @@ public class PostService : IPostService
     {
         await CreateIfBucketNotExists();
         Post post = _context.Posts.FirstOrDefault(p => p.Guid == postGuid);
-        if (post == null) throw new Exception("Post not found");
-        
-        if(post.MediaGuid != null) return;
+        if (post == null)
+            throw new Exception("Post not found");
+
+        if (post.MediaGuid != null)
+            return;
 
         post.MediaGuid = Guid.NewGuid().ToString();
 
+        _context.SaveChanges();
         string filePath = Path.GetTempFileName();
         try
         {
@@ -70,7 +76,9 @@ public class PostService : IPostService
                 .WithFileName(filePath)
                 .WithContentType(file.File.ContentType);
 
-            PutObjectResponse result = await _minioClient.PutObjectAsync(putPostArgs).ConfigureAwait(true);
+            PutObjectResponse result = await _minioClient
+                .PutObjectAsync(putPostArgs)
+                .ConfigureAwait(true);
             File.Delete(filePath);
         }
         catch (Exception e)
@@ -78,19 +86,13 @@ public class PostService : IPostService
             Console.WriteLine(e);
             return;
         }
-        finally
-        {
-            await _context.SaveChangesAsync();
-        }
     }
 
     public async Task<FileContentResult> GetMedia(string guid)
     {
         await CreateIfBucketNotExists();
         //TODO check if needed
-        StatObjectArgs statPostArgs = new StatObjectArgs()
-            .WithBucket(BucketName)
-            .WithObject(guid);
+        StatObjectArgs statPostArgs = new StatObjectArgs().WithBucket(BucketName).WithObject(guid);
 
         _ = await _minioClient.StatObjectAsync(statPostArgs);
 
@@ -123,18 +125,30 @@ public class PostService : IPostService
     private async Task CreateIfBucketNotExists()
     {
         //TODO check does not upload the first file after creating bucket
-        BucketExistsArgs? bukerArgs = new BucketExistsArgs()
-            .WithBucket(BucketName);
+        BucketExistsArgs? bukerArgs = new BucketExistsArgs().WithBucket(BucketName);
 
-        bool bucketExists = await _minioClient.BucketExistsAsync(bukerArgs)
-            .ConfigureAwait(false);
+        bool bucketExists = await _minioClient.BucketExistsAsync(bukerArgs).ConfigureAwait(false);
 
         if (!bucketExists)
         {
-            MakeBucketArgs newBucket = new MakeBucketArgs()
-                .WithBucket(BucketName);
-            await _minioClient.MakeBucketAsync(newBucket)
-                .ConfigureAwait(true);
+            MakeBucketArgs newBucket = new MakeBucketArgs().WithBucket(BucketName);
+            await _minioClient.MakeBucketAsync(newBucket).ConfigureAwait(true);
         }
+    }
+
+    public Post GetPost(string guid)
+    {
+        Post post = _context.Posts
+            .Include(p => p.Comments)
+            .Include(p => p.Likes)
+            .FirstOrDefault(p => p.Guid == guid);
+        if (post == null) throw new Exception("not found post");
+        return post;
+    }
+
+    public async Task<List<Post>> GetPosts()
+    {
+        //TODO make better recommendation algoritham
+       return await _context.Posts.OrderBy(p => p.Created).Take(5).ToListAsync();
     }
 }

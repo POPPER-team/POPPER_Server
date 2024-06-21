@@ -34,7 +34,10 @@ public class PostController : ControllerBase
     }
 
     [HttpPost("[action]/{guid}")]
-    public async Task<IActionResult> UploadPostMedia([FromRoute] string guid, [FromForm] FileUploadDto file)
+    public async Task<IActionResult> UploadPostMedia(
+        [FromRoute] string guid,
+        [FromForm] FileUploadDto file
+    )
     {
         User user = await Request.GetUserAsync();
         try
@@ -50,9 +53,9 @@ public class PostController : ControllerBase
     }
 
     [HttpGet("[action]")]
-    public IActionResult GetRecommendedPosts()
+    public async Task<IActionResult> GetRecommendedPosts()
     {
-        throw new NotImplementedException();
+        return Ok( (await  _postService.GetPosts()));
     }
 
     [HttpGet("[action]/{guid}")]
@@ -60,7 +63,7 @@ public class PostController : ControllerBase
     {
         try
         {
-            return Ok();
+            return Ok(_mapper.Map<PostDto>(_postService.GetPost(guid)));
         }
         catch (Exception e)
         {
@@ -87,3 +90,4 @@ public class PostController : ControllerBase
         throw new NotImplementedException();
     }
 }
+
