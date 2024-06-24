@@ -91,9 +91,17 @@ public class PostController : ControllerBase
     }
 
     [HttpGet("[action]/{guid}")]
-    public IActionResult GetUserPosts([FromRoute] string guid)
+    public async Task<IActionResult> GetUserPostsAsync([FromRoute] string guid)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var posts = _mapper.Map<List<PostDto>>(await _postService.GetUserPosts(guid));
+            return Ok(posts);
+        }
+        catch (Exception e)
+        {
+            return NotFound(e);
+        }
     }
 
     [HttpGet("[action]")]

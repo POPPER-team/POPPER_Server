@@ -19,7 +19,7 @@ public interface IPostService
     public Task<List<Post>> GetPosts();
     public Task DeletePost(string guid);
     public Task<List<Post>> GetFavoritePosts(User user);
-    public Task<List<Post>> GetUserPosts(User user);
+    public Task<List<Post>> GetUserPosts(string guid);
 }
 
 public class PostService : IPostService
@@ -171,11 +171,11 @@ public class PostService : IPostService
         return favoritePosts;
     }
 
-    public async Task<List<Post>> GetUserPosts(User user)
+    public async Task<List<Post>> GetUserPosts(string guid)
     {
         List<Post> userPosts = await _context
             .Posts.AsNoTracking()
-            .Where(p => p.UserId == user.Id)
+            .Where(p => p.User.Guid == guid)
             .OrderBy(p => p.Created)
             .ToListAsync();
         return userPosts;
@@ -191,4 +191,3 @@ public class PostService : IPostService
         throw new NotImplementedException();
     }
 }
-
