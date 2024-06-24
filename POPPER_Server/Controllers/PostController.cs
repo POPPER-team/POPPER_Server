@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Dtos;
 using POPPER_Server.Helpers;
@@ -84,10 +85,21 @@ public class PostController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("[action]/{guid}")]
-    public IActionResult DeletePost([FromRoute] string guid)
+    public async Task<IActionResult> DeletePostAsync([FromRoute] string guid)
     {
-        throw new NotImplementedException();
+        try
+        {
+            //TODO check if the post is from the user
+            User user = await Request.GetUserAsync();
+            await _postService.DeletePost(guid, user);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return NotFound(e);
+        }
     }
 
     [HttpGet("[action]/{guid}")]
@@ -108,6 +120,8 @@ public class PostController : ControllerBase
     public async Task<IActionResult> GetFavorites()
     {
         User user = await Request.GetUserAsync();
-        throw new NotImplementedException();
+
+        var posts = await _postService.GetFavoritePosts(user);
+        return Ok(_mapper.Map<List<PostDto>>(posts));
     }
 }

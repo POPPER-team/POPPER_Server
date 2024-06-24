@@ -17,7 +17,7 @@ public interface IPostService
     public Task<FileContentResult> GetMedia(string guid);
     public Post GetPost(string guid);
     public Task<List<Post>> GetPosts();
-    public Task DeletePost(string guid);
+    public Task DeletePost(string guid, User user);
     public Task<List<Post>> GetFavoritePosts(User user);
     public Task<List<Post>> GetUserPosts(string guid);
 }
@@ -181,13 +181,25 @@ public class PostService : IPostService
         return userPosts;
     }
 
-    public async Task DeletePost(string guid)
+    public async Task DeletePost(string guid, User user)
     {
         Post post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
+
         if (post == null)
             throw new Exception("Post not found");
-        _context.Remove(post);
-        //TODO remove post media from minio storage
-        throw new NotImplementedException();
+        if (user.Id != post.UserId)
+            throw new Exception("You can only delete your post");
+
+        var removeArgs = new RemoveObjectArgs().WithBucket(BucketName).WithObject(post.MediaGuid);
+        try
+        {
+            _context.Remove(post);
+            await _minioClient.RemoveObjectAsync(removeArgs);
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+        await _context.SaveChangesAsync();
     }
 }
