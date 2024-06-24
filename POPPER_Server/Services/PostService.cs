@@ -142,7 +142,8 @@ public class PostService : IPostService
     public Post GetPost(string guid)
     {
         Post post = _context
-            .Posts.Include(p => p.Comments)
+            .Posts.AsNoTracking()
+            .Include(p => p.Comments)
             .Include(p => p.Likes)
             .FirstOrDefault(p => p.Guid == guid);
         if (post == null)
@@ -153,13 +154,14 @@ public class PostService : IPostService
     public async Task<List<Post>> GetPosts()
     {
         //TODO make better recommendation algoritham
-        return await _context.Posts.OrderBy(p => p.Created).Take(5).ToListAsync();
+        return await _context.Posts.AsNoTracking().OrderBy(p => p.Created).Take(5).ToListAsync();
     }
 
     public async Task<List<Post>> GetFavoritePosts(User user)
     {
         List<Post> favoritePosts = await _context
-            .Users.Where(u => u.Id == user.Id)
+            .Users.AsNoTracking()
+            .Where(u => u.Id == user.Id)
             .Include(u => u.Saveds)
             .ThenInclude(s => s.Post)
             .SelectMany(u => u.Saveds)
@@ -172,14 +174,20 @@ public class PostService : IPostService
     public async Task<List<Post>> GetUserPosts(User user)
     {
         List<Post> userPosts = await _context
-            .Posts.Where(p => p.UserId == user.Id)
+            .Posts.AsNoTracking()
+            .Where(p => p.UserId == user.Id)
             .OrderBy(p => p.Created)
             .ToListAsync();
         return userPosts;
     }
 
-    public Task DeletePost(string guid)
+    public async Task DeletePost(string guid)
     {
+        Post post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
+        if (post == null)
+            throw new Exception("Post not found");
+        _context.Remove(post);
+        //TODO remove post media from minio storage
         throw new NotImplementedException();
     }
 }
