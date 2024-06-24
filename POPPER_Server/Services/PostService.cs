@@ -17,6 +17,9 @@ public interface IPostService
     public Task<FileContentResult> GetMedia(string guid);
     public Post GetPost(string guid);
     public Task<List<Post>> GetPosts();
+    public Task DeletePost(string guid);
+    public Task<List<Post>> GetFavoritePosts(User user);
+    public Task<List<Post>> GetUserPosts(User user);
 }
 
 public class PostService : IPostService
@@ -138,17 +141,46 @@ public class PostService : IPostService
 
     public Post GetPost(string guid)
     {
-        Post post = _context.Posts
-            .Include(p => p.Comments)
+        Post post = _context
+            .Posts.Include(p => p.Comments)
             .Include(p => p.Likes)
             .FirstOrDefault(p => p.Guid == guid);
-        if (post == null) throw new Exception("not found post");
+        if (post == null)
+            throw new Exception("not found post");
         return post;
     }
 
     public async Task<List<Post>> GetPosts()
     {
         //TODO make better recommendation algoritham
-       return await _context.Posts.OrderBy(p => p.Created).Take(5).ToListAsync();
+        return await _context.Posts.OrderBy(p => p.Created).Take(5).ToListAsync();
+    }
+
+    public async Task<List<Post>> GetFavoritePosts(User user)
+    {
+        List<Post> favoritePosts = await _context
+            .Users.Where(u => u.Id == user.Id)
+            .Include(u => u.Saveds)
+            .ThenInclude(s => s.Post)
+            .SelectMany(u => u.Saveds)
+            .Select(s => s.Post)
+            .OrderBy(p => p.Created)
+            .ToListAsync();
+        return favoritePosts;
+    }
+
+    public async Task<List<Post>> GetUserPosts(User user)
+    {
+        List<Post> userPosts = await _context
+            .Posts.Where(p => p.UserId == user.Id)
+            .OrderBy(p => p.Created)
+            .ToListAsync();
+        return userPosts;
+    }
+
+    public Task DeletePost(string guid)
+    {
+        throw new NotImplementedException();
     }
 }
+

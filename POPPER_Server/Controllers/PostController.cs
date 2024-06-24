@@ -55,7 +55,7 @@ public class PostController : ControllerBase
     [HttpGet("[action]")]
     public async Task<IActionResult> GetRecommendedPosts()
     {
-        return Ok( (await  _postService.GetPosts()));
+        return Ok((await _postService.GetPosts()));
     }
 
     [HttpGet("[action]/{guid}")]
@@ -84,10 +84,22 @@ public class PostController : ControllerBase
         }
     }
 
-    [HttpDelete("[action]{guid}")]
+    [HttpDelete("[action]/{guid}")]
     public IActionResult DeletePost([FromRoute] string guid)
     {
         throw new NotImplementedException();
     }
-}
 
+    [HttpGet("[action]/{guid}")]
+    public IActionResult GetUserPosts([FromRoute] string guid)
+    {
+        throw new NotImplementedException();
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetFavorites()
+    {
+        User user = await Request.GetUserAsync();
+        throw new NotImplementedException();
+    }
+}
