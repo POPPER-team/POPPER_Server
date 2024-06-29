@@ -11,6 +11,7 @@ public static class SeedData
 {
     public static async Task<IApplicationBuilder> CreateBucketsAsync(this IApplicationBuilder app)
     {
+        //TODO check if actually works
         ArgumentNullException.ThrowIfNull(app, nameof(app));
         using var scope = app.ApplicationServices.CreateScope();
         IServiceProvider services = scope.ServiceProvider;
