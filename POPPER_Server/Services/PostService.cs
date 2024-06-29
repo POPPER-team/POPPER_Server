@@ -28,7 +28,7 @@ public class PostService : IPostService
     private readonly PopperdbContext _context;
     private readonly IMinioClient _minioClient;
 
-    private const string BucketName = "posts";
+    const string BucketName = "posts";
 
     public PostService(IMapper mapper, PopperdbContext context, IMinioClient minio)
     {
@@ -48,7 +48,7 @@ public class PostService : IPostService
 
     public async Task UploadMedaToPost(string postGuid, User user, FileUploadDto file)
     {
-        await CreateIfBucketNotExists();
+        //TODO it does not seem to work
         Post post = _context.Posts.FirstOrDefault(p => p.Guid == postGuid);
         if (post == null)
             throw new Exception("Post not found");
@@ -93,7 +93,6 @@ public class PostService : IPostService
 
     public async Task<FileContentResult> GetMedia(string guid)
     {
-        await CreateIfBucketNotExists();
         //TODO check if needed
         StatObjectArgs statPostArgs = new StatObjectArgs().WithBucket(BucketName).WithObject(guid);
 
@@ -123,20 +122,6 @@ public class PostService : IPostService
         PostDto postDto = _mapper.Map<PostDto>(post);
 
         return file;
-    }
-
-    private async Task CreateIfBucketNotExists()
-    {
-        //TODO check does not upload the first file after creating bucket
-        BucketExistsArgs? bukerArgs = new BucketExistsArgs().WithBucket(BucketName);
-
-        bool bucketExists = await _minioClient.BucketExistsAsync(bukerArgs).ConfigureAwait(false);
-
-        if (!bucketExists)
-        {
-            MakeBucketArgs newBucket = new MakeBucketArgs().WithBucket(BucketName);
-            await _minioClient.MakeBucketAsync(newBucket).ConfigureAwait(true);
-        }
     }
 
     public Post GetPost(string guid)
@@ -189,17 +174,14 @@ public class PostService : IPostService
             throw new Exception("Post not found");
         if (user.Id != post.UserId)
             throw new Exception("You can only delete your post");
-
-        var removeArgs = new RemoveObjectArgs().WithBucket(BucketName).WithObject(post.MediaGuid);
-        try
+        if (post.MediaGuid != null)
         {
-            _context.Remove(post);
+            var removeArgs = new RemoveObjectArgs()
+                .WithBucket(BucketName)
+                .WithObject(post.MediaGuid);
             await _minioClient.RemoveObjectAsync(removeArgs);
         }
-        catch (Exception e)
-        {
-            throw e;
-        }
+        _context.Remove(post);
         await _context.SaveChangesAsync();
     }
 }
