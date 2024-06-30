@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Dtos;
 using POPPER_Server.Helpers;
@@ -34,12 +35,15 @@ public class PostController : ControllerBase
     }
 
     [HttpPost("[action]/{guid}")]
-    public async Task<IActionResult> UploadPostMedia([FromRoute] string guid, [FromForm] FileUploadDto file)
+    public async Task<IActionResult> UploadPostMedia(
+        [FromRoute] string guid,
+        [FromForm] FileUploadDto file
+    )
     {
         User user = await Request.GetUserAsync();
         try
         {
-            _postService.UploadMedaToPost(guid, user, file.File);
+            _postService.UploadMedaToPost(guid, user, file);
         }
         catch (Exception e)
         {
@@ -50,17 +54,30 @@ public class PostController : ControllerBase
     }
 
     [HttpGet("[action]")]
-    public IActionResult GetRecommendedPosts()
+    public async Task<IActionResult> GetRecommendedPosts()
     {
-        throw new NotImplementedException();
+        return Ok((await _postService.GetPosts()));
     }
 
     [HttpGet("[action]/{guid}")]
-    public async Task<IActionResult> GetPost([FromRoute] string guid)
+    public async Task<IActionResult> GetPostData([FromRoute] string guid)
     {
         try
         {
-            return await _postService.GetPost(guid);
+            return Ok(_mapper.Map<PostDto>(_postService.GetPost(guid)));
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
+    }
+
+    [HttpGet("[action]/{guid}")]
+    public async Task<IActionResult> GetPostMedia([FromRoute] string guid)
+    {
+        try
+        {
+            return await _postService.GetMedia(guid);
         }
         catch (Exception e)
         {
@@ -68,9 +85,43 @@ public class PostController : ControllerBase
         }
     }
 
-    [HttpDelete("[action]{guid}")]
-    public IActionResult DeletePost([FromRoute] string guid)
+    [Authorize]
+    [HttpDelete("[action]/{guid}")]
+    public async Task<IActionResult> DeletePostAsync([FromRoute] string guid)
     {
-        throw new NotImplementedException();
+        try
+        {
+            //TODO check if the post is from the user
+            User user = await Request.GetUserAsync();
+            await _postService.DeletePost(guid, user);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return NotFound(e);
+        }
+    }
+
+    [HttpGet("[action]/{guid}")]
+    public async Task<IActionResult> GetUserPostsAsync([FromRoute] string guid)
+    {
+        try
+        {
+            var posts = _mapper.Map<List<PostDto>>(await _postService.GetUserPosts(guid));
+            return Ok(posts);
+        }
+        catch (Exception e)
+        {
+            return NotFound(e);
+        }
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> GetFavorites()
+    {
+        User user = await Request.GetUserAsync();
+
+        var posts = await _postService.GetFavoritePosts(user);
+        return Ok(_mapper.Map<List<PostDto>>(posts));
     }
 }

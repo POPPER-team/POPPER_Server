@@ -1,5 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Minio;
+using Minio.DataModel.Args;
 using POPPER_Server.Dtos;
 using POPPER_Server.Models;
 
@@ -7,6 +9,30 @@ namespace POPPER_Server.Helpers;
 
 public static class SeedData
 {
+    public static async Task<IApplicationBuilder> CreateBucketsAsync(this IApplicationBuilder app)
+    {
+        //TODO check if actually works
+        ArgumentNullException.ThrowIfNull(app, nameof(app));
+        using var scope = app.ApplicationServices.CreateScope();
+        IServiceProvider services = scope.ServiceProvider;
+        IMinioClient _minioClient = services.GetRequiredService<IMinioClient>();
+
+        var bucketNames = new string[] { "posts", "profile-pictures" };
+        foreach (string BucketName in bucketNames)
+        {
+            BucketExistsArgs? bukerArgs = new BucketExistsArgs().WithBucket(BucketName);
+            bool bucketExists = await _minioClient
+                .BucketExistsAsync(bukerArgs)
+                .ConfigureAwait(false);
+            if (!bucketExists)
+            {
+                MakeBucketArgs newBucket = new MakeBucketArgs().WithBucket(BucketName);
+                await _minioClient.MakeBucketAsync(newBucket).ConfigureAwait(true);
+            }
+        }
+        return app;
+    }
+
     public static IApplicationBuilder SeedUsers(this IApplicationBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app, nameof(app));
@@ -16,7 +42,8 @@ public static class SeedData
         IMapper mapper = services.GetRequiredService<IMapper>();
         IPasswordHasher<User> passwordHasher = services.GetRequiredService<IPasswordHasher<User>>();
 
-        if (context.Users.Any()) return app;
+        if (context.Users.Any())
+            return app;
 
         List<NewUserDto> usersDtos = new List<NewUserDto>()
         {

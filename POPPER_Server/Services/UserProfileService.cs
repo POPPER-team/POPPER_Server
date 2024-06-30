@@ -42,6 +42,7 @@ public class UserProfileService : IUserProfileService
                 .WithContentType(picture.File.ContentType);
 
             PutObjectResponse result = await _minioClient.PutObjectAsync(putObject).ConfigureAwait(true);
+            File.Delete(filePath);
         }
         catch (Exception e)
         {

@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Minio;
 using Minio.DataModel.Args;
 using Minio.DataModel.Response;
@@ -12,8 +13,13 @@ namespace POPPER_Server.Services;
 public interface IPostService
 {
     public Task<Post> CreatePost(User user, NewPostDto dto);
-    public Task UploadMedaToPost(string postGuid, User user, IFormFile file);
-    public Task<FileContentResult> GetPost(string guid);
+    public Task UploadMedaToPost(string postGuid, User user, FileUploadDto file);
+    public Task<FileContentResult> GetMedia(string guid);
+    public Post GetPost(string guid);
+    public Task<List<Post>> GetPosts();
+    public Task DeletePost(string guid, User user);
+    public Task<List<Post>> GetFavoritePosts(User user);
+    public Task<List<Post>> GetUserPosts(string guid);
 }
 
 public class PostService : IPostService
@@ -22,7 +28,7 @@ public class PostService : IPostService
     private readonly PopperdbContext _context;
     private readonly IMinioClient _minioClient;
 
-    private const string BucketName = "posts";
+    const string BucketName = "posts";
 
     public PostService(IMapper mapper, PopperdbContext context, IMinioClient minio)
     {
@@ -40,20 +46,29 @@ public class PostService : IPostService
         return newPost;
     }
 
-    public async Task UploadMedaToPost(string postGuid, User user, IFormFile file)
+    public async Task UploadMedaToPost(string postGuid, User user, FileUploadDto file)
     {
-
+        //TODO it does not seem to work
         Post post = _context.Posts.FirstOrDefault(p => p.Guid == postGuid);
-        if (post == null) throw new Exception("Post not found");
+        if (post == null)
+            throw new Exception("Post not found");
+
+        if (post.MediaGuid != null)
+            return;
 
         post.MediaGuid = Guid.NewGuid().ToString();
 
-        await CreateIfBucketNotExists();
-
+        _context.SaveChanges();
         string filePath = Path.GetTempFileName();
-        await using (var stream = new FileStream(filePath, FileMode.Create))
+        try
         {
-            await file.CopyToAsync(stream);
+            using var stream = new FileStream(filePath, FileMode.Create);
+            file.File.CopyTo(stream);
+        }
+        catch
+        {
+            File.Delete(filePath);
+            throw new Exception("Cant copy the file");
         }
 
         try
@@ -62,37 +77,36 @@ public class PostService : IPostService
                 .WithBucket(BucketName)
                 .WithObject(post.MediaGuid)
                 .WithFileName(filePath)
-                .WithContentType(file.ContentType);
+                .WithContentType(file.File.ContentType);
 
-            PutObjectResponse result = await _minioClient.PutObjectAsync(putPostArgs).ConfigureAwait(true);
-
-            await _context.SaveChangesAsync();
+            PutObjectResponse result = await _minioClient
+                .PutObjectAsync(putPostArgs)
+                .ConfigureAwait(true);
+            File.Delete(filePath);
         }
         catch (Exception e)
         {
+            Console.WriteLine(e);
             return;
         }
     }
 
-    public async Task<FileContentResult> GetPost(string guid)
+    public async Task<FileContentResult> GetMedia(string guid)
     {
-        await CreateIfBucketNotExists();
         //TODO check if needed
-        StatObjectArgs statPostArgs = new StatObjectArgs()
-          .WithBucket(BucketName)
-          .WithObject(guid);
+        StatObjectArgs statPostArgs = new StatObjectArgs().WithBucket(BucketName).WithObject(guid);
 
         _ = await _minioClient.StatObjectAsync(statPostArgs);
 
         GetObjectArgs getPostArgs = new GetObjectArgs()
-          .WithBucket(BucketName)
-          .WithObject(guid)
-          .WithCallbackStream(stream =>
-          {
-              using FileStream fileStream = File.Create(guid);
-              stream.CopyTo(fileStream);
-              stream.Dispose();
-          });
+            .WithBucket(BucketName)
+            .WithObject(guid)
+            .WithCallbackStream(stream =>
+            {
+                using FileStream fileStream = File.Create(guid);
+                stream.CopyTo(fileStream);
+                stream.Dispose();
+            });
 
         var ObjData = await _minioClient.GetObjectAsync(getPostArgs);
 
@@ -110,22 +124,64 @@ public class PostService : IPostService
         return file;
     }
 
-    private async Task CreateIfBucketNotExists()
+    public Post GetPost(string guid)
     {
-        //TODO check does not upload the first file after creating bucket
-        BucketExistsArgs? bukerArgs = new BucketExistsArgs()
-            .WithBucket(BucketName);
-
-        bool bucketExists = await _minioClient.BucketExistsAsync(bukerArgs)
-            .ConfigureAwait(false);
-
-        if (!bucketExists)
-        {
-            MakeBucketArgs newBucket = new MakeBucketArgs()
-                .WithBucket(BucketName);
-            await _minioClient.MakeBucketAsync(newBucket)
-                .ConfigureAwait(true);
-        }
+        Post post = _context
+            .Posts.AsNoTracking()
+            .Include(p => p.Comments)
+            .Include(p => p.Likes)
+            .FirstOrDefault(p => p.Guid == guid);
+        if (post == null)
+            throw new Exception("not found post");
+        return post;
     }
 
+    public async Task<List<Post>> GetPosts()
+    {
+        //TODO make better recommendation algoritham
+        return await _context.Posts.AsNoTracking().OrderBy(p => p.Created).Take(5).ToListAsync();
+    }
+
+    public async Task<List<Post>> GetFavoritePosts(User user)
+    {
+        List<Post> favoritePosts = await _context
+            .Users.AsNoTracking()
+            .Where(u => u.Id == user.Id)
+            .Include(u => u.Saveds)
+            .ThenInclude(s => s.Post)
+            .SelectMany(u => u.Saveds)
+            .Select(s => s.Post)
+            .OrderBy(p => p.Created)
+            .ToListAsync();
+        return favoritePosts;
+    }
+
+    public async Task<List<Post>> GetUserPosts(string guid)
+    {
+        List<Post> userPosts = await _context
+            .Posts.AsNoTracking()
+            .Where(p => p.User.Guid == guid)
+            .OrderBy(p => p.Created)
+            .ToListAsync();
+        return userPosts;
+    }
+
+    public async Task DeletePost(string guid, User user)
+    {
+        Post post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
+
+        if (post == null)
+            throw new Exception("Post not found");
+        if (user.Id != post.UserId)
+            throw new Exception("You can only delete your post");
+        if (post.MediaGuid != null)
+        {
+            var removeArgs = new RemoveObjectArgs()
+                .WithBucket(BucketName)
+                .WithObject(post.MediaGuid);
+            await _minioClient.RemoveObjectAsync(removeArgs);
+        }
+        _context.Remove(post);
+        await _context.SaveChangesAsync();
+    }
 }
