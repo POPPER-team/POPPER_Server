@@ -6,9 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Minio;
 using MongoDB.Driver;
-using POPPER_Server.Services;
 using POPPER_Server.Helpers;
 using POPPER_Server.Models;
+using POPPER_Server.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -18,23 +18,25 @@ string[] minioCS = builder.Configuration.GetConnectionString("Minio").Split(';')
 //Services
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
-builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(builder.Configuration.GetConnectionString("MongoDb")));
+builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(
+    builder.Configuration.GetConnectionString("MongoDb")
+));
 
 builder.Services.AddScoped<IMongoDatabase>(sp =>
-    sp.GetRequiredService<IMongoClient>()
-        .GetDatabase("Popper_session")
+    sp.GetRequiredService<IMongoClient>().GetDatabase("Popper_session")
 );
 builder.Services.AddDbContext<PopperdbContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("MySqlDb"))
 );
-builder.Services.AddMinio(options => options
-    .WithEndpoint(minioCS[0])
-    .WithCredentials(minioCS[1], minioCS[2])
-    //TODO This might be a problem in future, >:( but to configure certificate is hard so i won't https://docs.minio.io/docs/how-to-secure-access-to-minio-server-with-tls.html
-    .WithSSL(false)
+builder.Services.AddMinio(options =>
+    options
+        .WithEndpoint(minioCS[0])
+        .WithCredentials(minioCS[1], minioCS[2])
+        //TODO This might be a problem in future, >:( but to configure certificate is hard so i won't https://docs.minio.io/docs/how-to-secure-access-to-minio-server-with-tls.html
+        .WithSSL(false)
 );
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder
+    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
         byte[] Key = Encoding.UTF8.GetBytes(secureKey);
@@ -53,6 +55,7 @@ builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IPostActions, PostActions>();
 
 builder.Services.AddTransient<ISessionService, SessionService>();
 
@@ -65,7 +68,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(option =>
 {
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "POPPER_Server", Version = "v1" });
-    option.AddSecurityDefinition("Bearer",
+    option.AddSecurityDefinition(
+        "Bearer",
         new OpenApiSecurityScheme
         {
             In = ParameterLocation.Header,
@@ -74,7 +78,8 @@ builder.Services.AddSwaggerGen(option =>
             Type = SecuritySchemeType.Http,
             BearerFormat = "JWT",
             Scheme = "Bearer"
-        });
+        }
+    );
 
     option.AddSecurityRequirement(
         new OpenApiSecurityRequirement
@@ -90,15 +95,16 @@ builder.Services.AddSwaggerGen(option =>
                 },
                 new List<string>()
             }
-        });
+        }
+    );
 });
-
 
 WebApplication? app = builder.Build();
 
 IServiceProvider services = app.Services.CreateScope().ServiceProvider;
 TokenHelper.ProvideService(services);
 UserHelper.ProvideService(services);
+
 //TODO test apis with new config for services
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
