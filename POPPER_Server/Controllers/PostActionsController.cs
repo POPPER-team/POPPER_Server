@@ -1,9 +1,11 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Helpers;
 
 namespace POPPER_Server.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 public class PostActionsController : ControllerBase
 {

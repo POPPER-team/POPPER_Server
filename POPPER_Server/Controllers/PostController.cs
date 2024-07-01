@@ -20,6 +20,7 @@ public class PostController : ControllerBase
         _mapper = mapper;
     }
 
+    [Authorize]
     [HttpPost("[action]")]
     public async Task<IActionResult> CreatePost([FromBody] NewPostDto dto)
     {
@@ -34,6 +35,7 @@ public class PostController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPost("[action]/{guid}")]
     public async Task<IActionResult> UploadPostMedia(
         [FromRoute] string guid,
@@ -53,6 +55,7 @@ public class PostController : ControllerBase
         return Ok();
     }
 
+    [Authorize]
     [HttpGet("[action]")]
     public async Task<IActionResult> GetRecommendedPosts()
     {
@@ -116,6 +119,7 @@ public class PostController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpGet("[action]")]
     public async Task<IActionResult> GetFavorites()
     {
