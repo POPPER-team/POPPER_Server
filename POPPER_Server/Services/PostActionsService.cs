@@ -25,13 +25,14 @@ public class PostActions : IPostActions
 
     public async Task<int> LikePost(string guid, User user)
     {
-        var like = await _context.Likes.FirstOrDefaultAsync(l => l.UserId == user.Id);
         var post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
         if (post == null)
             throw new Exception("post not fund");
+        //TODO test if works
+        var like = post.Likes.FirstOrDefault(l => l.UserId == user.Id);
         if (like != null)
         {
-            _context.Remove(like);
+            _context.Likes.Remove(like);
         }
         else
         {
@@ -47,8 +48,22 @@ public class PostActions : IPostActions
         throw new NotImplementedException();
     }
 
-    public Task<int> SavePost(string guid, User user)
+    public async Task<int> SavePost(string guid, User user)
     {
-        throw new NotImplementedException();
+        var post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
+        if (post == null)
+            throw new Exception("post not found");
+        var save = post.Saveds.FirstOrDefault(s => s.UserId == user.Id);
+        if (save != null)
+        {
+            _context.Saveds.Remove(save);
+        }
+        else
+        {
+            var newSave = new Saved { Post = post, User = user };
+            await _context.Saveds.AddAsync(newSave);
+        }
+        await _context.SaveChangesAsync();
+        return post.Saveds.Count();
     }
 }
