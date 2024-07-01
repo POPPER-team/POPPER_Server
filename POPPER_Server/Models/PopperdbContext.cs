@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using POPPER_Server.Services;
 
 namespace POPPER_Server.Models;
 
@@ -32,6 +33,7 @@ public partial class PopperdbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<View> Views { get; set; }
+    
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseMySQL("Name=ConnectionStrings:MySqlDb");
