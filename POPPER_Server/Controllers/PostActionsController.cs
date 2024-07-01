@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Helpers;
+using POPPER_Server.Models;
 
 namespace POPPER_Server.Controllers;
 
@@ -23,7 +24,8 @@ public class PostActionsController : ControllerBase
     {
         try
         {
-            return Ok(await _postActions.LikePost(guid));
+            User user = await Request.GetUserAsync();
+            return Ok(await _postActions.LikePost(guid, user));
         }
         catch (Exception e)
         {
