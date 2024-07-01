@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using POPPER_Server.Models;
 
@@ -12,9 +13,11 @@ public interface IPostActions
 public class PostActions : IPostActions
 {
     private readonly PopperdbContext _context;
+    private readonly IMapper _mapper;
 
-    public PostActions(PopperdbContext context)
+    public PostActions(PopperdbContext context, IMapper mapper)
     {
+        _mapper = mapper;
         _context = context;
     }
 
@@ -25,6 +28,7 @@ public class PostActions : IPostActions
 
     public async Task<int> LikePost(string guid, User user)
     {
+        //TODO check if works
         var post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
         if (post == null)
             throw new Exception("post not fund");
@@ -43,13 +47,28 @@ public class PostActions : IPostActions
         return post.Likes.Count();
     }
 
-    public Task<List<Comment>> PostComment(string guid, NewCommentDto commentDto)
+    public async Task<List<Comment>> PostComment(string guid, NewCommentDto commentDto)
     {
-        throw new NotImplementedException();
+        var newComment = _mapper.Map<Comment>(commentDto);
+
+        var post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
+        if (post == null)
+            throw new Exception("post not found");
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == commentDto.UserGuid);
+        if (user == null)
+            throw new Exception("User not found");
+
+        newComment.User = user;
+        newComment.Post = post;
+
+        await _context.Comments.AddAsync(newComment);
+        return await _context.Comments.Where(c => c.Post.Guid == guid).ToListAsync();
     }
 
     public async Task<int> SavePost(string guid, User user)
     {
+        //TODO check if works
         var post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
         if (post == null)
             throw new Exception("post not found");

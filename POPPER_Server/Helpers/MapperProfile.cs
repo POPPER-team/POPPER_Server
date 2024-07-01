@@ -10,16 +10,24 @@ public class MapperProfile : Profile
     {
         CreateMap<NewUserDto, User>()
             .ForMember(dest => dest.Password, opt => opt.Ignore())
-            .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => DateTime.Parse(src.DateOfBirth)));
+            .ForMember(
+                dest => dest.DateOfBirth,
+                opt => opt.MapFrom(src => DateTime.Parse(src.DateOfBirth))
+            );
         CreateMap<UserLoginDto, User>();
 
-
         CreateMap<UserDetailsDto, User>()
-            .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => DateTime.Parse(src.DateOfBirth)))
+            .ForMember(
+                dest => dest.DateOfBirth,
+                opt => opt.MapFrom(src => DateTime.Parse(src.DateOfBirth))
+            )
             .ForMember(dest => dest.Guid, opt => opt.Ignore())
             .ForMember(dest => dest.Created, opt => opt.MapFrom(src => src.Created.ToString()));
         CreateMap<User, UserDetailsDto>()
-            .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth.ToString()));
+            .ForMember(
+                dest => dest.DateOfBirth,
+                opt => opt.MapFrom(src => src.DateOfBirth.ToString())
+            );
 
         CreateMap<User, UserDto>();
         CreateMap<UserDto, User>()
@@ -31,12 +39,17 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Likes, opt => opt.MapFrom(src => src.Likes.Count))
             .ForMember(dest => dest.viewCount, opt => opt.MapFrom(src => src.Views.Count))
             .ForMember(dest => dest.SavedCount, opt => opt.MapFrom(src => src.Saveds.Count))
-            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.ToString("g")));
+            .ForMember(
+                dest => dest.Duration,
+                opt => opt.MapFrom(src => src.Duration.ToString("g"))
+            );
 
         CreateMap<NewPostDto, Post>()
             .ForMember(dest => dest.Guid, opt => opt.Ignore())
             .ForMember(dest => dest.Duration, opt => opt.Ignore())
             .ForMember(dest => dest.Steps, opt => opt.Ignore())
             .ForMember(dest => dest.Ingredients, opt => opt.Ignore());
+
+        CreateMap<NewCommentDto, Comment>().ForMember(dest => dest.Guid, opt => opt.Ignore());
     }
 }
