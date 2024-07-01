@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using POPPER_Server.Dtos;
 
 namespace POPPER_Server.Models;
 

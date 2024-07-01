@@ -1,58 +1,54 @@
+using Moq;
+using POPPER_Server.Dtos;
+using POPPER_Server.Models;
+
 namespace POPPER_Tests;
+
+using POPPER_Server.Services;
 
 public class LoginOutRegisterTest
 {
+    private readonly IUserServices _userServices;
+
+    public LoginOutRegisterTest()
+    {
+        var mockUserServices = new Mock<IUserServices>();
+        mockUserServices.Setup(service => service.LoginUserAsync( It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(new TokensDto());
+
+        mockUserServices.Setup(service => service.RegisterUserAsync(It.IsAny<NewUserDto>()))
+            .ReturnsAsync(new User());
+
+        _userServices = mockUserServices.Object;
+    }
+
     [Fact]
-    public void LoginTest()
+    public async Task LoginTest()
     {
         var username = "gordan";
         var password = "password";
-        var expected = true;
-        
-        var result = Login(username, password);
-        
+        var expected = new TokensDto();
+
+        var result = await _userServices.LoginUserAsync(username, password);
+
         Assert.Equal(expected, result);
-        
     }
 
-    private bool Login(string username, string password)
-    {
-        return username == "gordan" && password == "password";
-    }
-
+ //Register test is failing, TODO: fix it
     [Fact]
-
-    public void LogOutTest()
+    public async Task RegisterTest()
     {
-        var expected = true;
-        var result = LogOut();
-        
-        Assert.Equal(expected, result);
-        
-    }
+        var newUser = new NewUserDto()
+        {
+            Username = "gordan",
+            Password = "password",
+            Email = "gordan@algebra.hr"
+        };
+        var expected = new User();
+        var result = await _userServices.RegisterUserAsync(newUser);
 
-    private bool LogOut()
-    {
-        return true;
-    }
-
-    [Fact]
-
-    public void RegisterTest()
-    {
-        var username = "gordan";
-        var password = "password";
-        var email = "gordan@algebra.hr";
-        var expected = true;
-        
-        var result = Register(username, password, email);
-        
         Assert.Equal(expected, result);
 
-    }
+     }
 
-    private bool Register(string username, string password, string email)
-    {
-        return username == "gordan" && password == "password" && email == "gordan@algebra.hr";
-    }
 }

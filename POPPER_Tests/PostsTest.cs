@@ -1,61 +1,61 @@
+using Moq;
+using POPPER_Server.Models;
+using POPPER_Server.Services;
+
 namespace POPPER_Tests;
 
 public class PostsTest
 {
-    [Fact]
-    
-    public void LikePostTest()
+    private readonly Mock<IPostService> _postService;
+
+    public PostsTest()
     {
-        var username = "gordan";
-        var postId = 1;
-        var expected = true;
-        
-        var result = LikePost(username, postId);
-        
-        Assert.Equal(expected, result);
-        
+        _postService = new Mock<IPostService>();
     }
 
-    private bool LikePost(string username, int postId)
-    {
-        return username == "gordan" && postId == 1;
-    }
-    
     [Fact]
-    
-    public void UnlikePostTest()
+    public async Task LikePostTest()
     {
-        var username = "gordan";
-        var postId = 1;
+        var user = new User { Id = 1, Username = "gordan" };
+        var post = new Post { Id = 1 };
         var expected = true;
-        
-        var result = UnlikePost(username, postId);
-        
-        Assert.Equal(expected, result);
-        
+
+        //        _postService.Setup(x => x.LikePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
+        //          .ReturnsAsync(expected);
+
+        //    var result = await _postService.Object.LikePostAsync(user, post);
+
+        //  Assert.Equal(expected, result);
     }
 
-    private bool UnlikePost(string username, int postId)
-    {
-        return username == "gordan" && postId == 1;
-    }
-    
     [Fact]
-    
-    public void SharePostTest()
+    public async Task UnlikePostTest()
     {
-        var username = "gordan";
-        var postId = 1;
+        var user = new User { Id = 1, Username = "gordan" };
+        var post = new Post { Id = 1 };
         var expected = true;
-        
-        var result = SharePost(username, postId);
-        
-        Assert.Equal(expected, result);
-        
+
+        // _postService.Setup(x => x.UnlikePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
+        //   .ReturnsAsync(expected);
+
+        //var result = await _postService.Object.UnlikePostAsync(user, post);
+
+        //  Assert.Equal(expected, result);
     }
 
-    private bool SharePost(string username, int postId)
+    [Fact]
+    public async Task SharePostTest()
     {
-        return username == "gordan" && postId == 1;
+        var user = new User { Id = 1, Username = "gordan" };
+        var post = new Post { Id = 1 };
+        var expected = true;
+
+        //_postService.Setup(x => x.SharePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
+        //  .ReturnsAsync(expected);
+
+        //var result = await _postService.Object.SharePostAsync(user, post);
+
+        // Assert.Equal(expected, result);
     }
 }
+

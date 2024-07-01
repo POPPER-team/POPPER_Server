@@ -1,42 +1,61 @@
+using Moq;
+using POPPER_Server.Models;
+
 namespace POPPER_Tests;
+
+using POPPER_Server.Services;
 
 public class FollowingTest
 {
-    [Fact]
-    
-    public void FollowTest()
+    private readonly Mock<IFollowService> _followingService;
+
+    public FollowingTest()
     {
-        var username = "gordan";
-        var userToFollow = "ivan";
-        var expected = true;
-        
-        var result = Follow(username, userToFollow);
-        
-        Assert.Equal(expected, result);
-        
+        _followingService = new Mock<IFollowService>();
     }
 
-    private bool Follow(string username, string userToFollow)
-    {
-        return username == "gordan" && userToFollow == "ivan";
-    }
-    
     [Fact]
-    
-    public void UnfollowTest()
+    public async Task FollowTest()
     {
-        var username = "gordan";
-        var userToUnfollow = "ivan";
+        var user = new User { Id = 1, Username = "gordan" };
+        var userToFollow = new User { Id = 2, Username = "ivan" };
+        var userToFollowGuid = "2";
         var expected = true;
-        
-        var result = Unfollow(username, userToUnfollow);
-        
-        Assert.Equal(expected, result);
-        
+
+
+        var followResult = await _followingService.Object.FollowUserAsync(user, userToFollowGuid);
+
+        Assert.Equal(expected, followResult);
+
+        var followers = await _followingService.Object.GetFollowersAsync(userToFollow);
+
+        var isFollowing = followers.Any(follower => follower.Id == user.Id);
+
+        Assert.True(isFollowing, "The current user should be in the list of followers after following the user.");
     }
 
-    private bool Unfollow(string username, string userToUnfollow)
+
+    [Fact]
+    public  async Task UnfollowTest()
     {
-        return username == "gordan" && userToUnfollow == "ivan";
+        var user = new User { Id = 1, Username = "gordan" };
+        var userToUnFollow = new User { Id = 2, Username = "ivan" };
+        var userToUnFollowGuid = "2";
+        var expected = true;
+
+        var followersBefore = await _followingService.Object.GetFollowersAsync(userToUnFollow);
+
+        var isFollowingBefore = followersBefore.Any(follower => follower.Id == user.Id);
+
+        Assert.True(isFollowingBefore, "The current user should be in the list of followers before unfollowing the user.");
+
+        var result = await _followingService.Object.UnFollowUserAsync(user, userToUnFollowGuid);
+        Assert.Equal(expected, result);
+
+        var followersAfter = await _followingService.Object.GetFollowersAsync(userToUnFollow);
+
+        var isFollowingAfter = followersAfter.Any(follower => follower.Id == user.Id);
+
+        Assert.False(isFollowingAfter, "The current user should not be in the list of followers after unfollowing the user.");
     }
 }
