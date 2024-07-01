@@ -1,46 +1,74 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using POPPER_Server.Dtos;
 using POPPER_Server.Helpers;
-using POPPER_Server.Models;
-using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
 
 [Route("api/[controller]")]
 public class PostActionsController : ControllerBase
 {
-    private readonly IPostService _postService;
+    private readonly IPostActions _postActions;
     private readonly IMapper _mapper;
 
-    public PostActionsController(IPostService postService, IMapper mapper)
+    public PostActionsController(IPostActions postActions, IMapper mapper)
     {
-        _postService = postService;
+        _postActions = postActions;
         _mapper = mapper;
     }
 
     [HttpPost("[action]/{guid}")]
-    public IActionResult LikePost([FromRoute] string guid)
+    public async Task<IActionResult> LikePostAsync([FromRoute] string guid)
     {
-        return Ok();
+        try
+        {
+            return Ok(await _postActions.LikePost(guid));
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
     [HttpPost("[action]/{guid}")]
-    public IActionResult CommentOnPost([FromRoute] string guid)
+    public async Task<IActionResult> CommentOnPostAsync(
+        [FromRoute] string guid,
+        [FromBody] NewCommentDto comment
+    )
     {
-        return Ok();
+        try
+        {
+            return Ok(await _postActions.PostComment(guid, comment));
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
     [HttpPost("[action]/{guid}")]
-    public IActionResult SavePost([FromRoute] string guid)
+    public async Task<IActionResult> SavePost([FromRoute] string guid)
     {
-        return Ok();
+        try
+        {
+            var user = await Request.GetUserAsync();
+            return Ok(await _postActions.SavePost(guid, user));
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
     [HttpPost("[action]/{guid}")]
-    public IActionResult SharePost([FromRoute] string guid)
+    public async Task<IActionResult> SharePostAsync([FromRoute] string guid)
     {
-        return Ok();
+        try
+        {
+            return Ok(await _postActions.GetShareLink(guid));
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 }
