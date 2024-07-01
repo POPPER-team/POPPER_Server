@@ -12,7 +12,7 @@ public class PostsTest
     {
         _postService = new Mock<IPostService>();
     }
-
+//TODO ovo izgleda ok samo sto trebas prebaciti na IPostActions kada mergam to s devom
     [Fact]
     public async Task LikePostTest()
     {

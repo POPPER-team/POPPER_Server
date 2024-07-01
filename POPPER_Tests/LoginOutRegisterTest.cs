@@ -46,7 +46,7 @@ public class LoginOutRegisterTest
         };
         var expected = new User();
         var result = await _userServices.RegisterUserAsync(newUser);
-
+//TODO faila 
         Assert.Equal(expected, result);
 
      }

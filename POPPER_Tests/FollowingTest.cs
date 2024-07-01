@@ -17,6 +17,7 @@ public class FollowingTest
     [Fact]
     public async Task FollowTest()
     {
+        //TODO napravi cijelog usera ne samo id i username
         var user = new User { Id = 1, Username = "gordan" };
         var userToFollow = new User { Id = 2, Username = "ivan" };
         var userToFollowGuid = "2";
@@ -46,7 +47,7 @@ public class FollowingTest
         var followersBefore = await _followingService.Object.GetFollowersAsync(userToUnFollow);
 
         var isFollowingBefore = followersBefore.Any(follower => follower.Id == user.Id);
-
+//TODO treba samo jedan assert ako ih radis vise odvoji ih u posebne funkcije
         Assert.True(isFollowingBefore, "The current user should be in the list of followers before unfollowing the user.");
 
         var result = await _followingService.Object.UnFollowUserAsync(user, userToUnFollowGuid);
