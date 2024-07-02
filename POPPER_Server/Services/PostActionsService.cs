@@ -21,10 +21,10 @@ public class PostActions : IPostActions
         _context = context;
     }
 
-    public Task<string> GetShareLink(string guid)
+    public async Task<string> GetShareLink(string guid)
     {
-        //        return "https://localhost:5029/Post/get";
-        throw new NotImplementedException();
+        var post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
+        return $"http://localhost:5029/api/Post/GetPostMedia/{post.MediaGuid}";
     }
 
     public async Task<int> LikePost(string guid, User user)
