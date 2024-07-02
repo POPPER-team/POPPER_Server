@@ -16,10 +16,11 @@ public interface IPostService
     public Task UploadMedaToPost(string postGuid, User user, FileUploadDto file);
     public Task<FileContentResult> GetMedia(string guid);
     public Post GetPost(string guid);
-    public Task<List<Post>> GetPosts();
+    public Task<List<Post>> GetPosts(User user);
     public Task DeletePost(string guid, User user);
     public Task<List<Post>> GetFavoritePosts(User user);
     public Task<List<Post>> GetUserPosts(string guid);
+    public void ViewPost(string guid, User user);
 }
 
 public class PostService : IPostService
@@ -136,10 +137,31 @@ public class PostService : IPostService
         return post;
     }
 
-    public async Task<List<Post>> GetPosts()
+    public async Task<List<Post>> GetPosts(User user)
     {
-        //TODO make better recommendation algoritham
-        return await _context.Posts.AsNoTracking().OrderBy(p => p.Created).Take(5).ToListAsync();
+        var Posts = await _context
+            .Posts.AsNoTracking()
+            .Where(u => !u.Views.Any(v => v.UserId == user.Id))
+            .OrderBy(p => p.Views)
+            .ThenBy(p => p.Created)
+            .Take(10)
+            .Include(p => p.Views)
+            .Include(p => p.Likes)
+            .Include(p => p.Comments)
+            .ToListAsync();
+
+        var Followers = await _context
+            .Posts.AsNoTracking()
+            .Where(u => !u.Views.Any(v => v.UserId == user.Id))
+            //            .Where(u => u.User.FollowingUsers.)
+            .OrderBy(p => p.Views)
+            .ThenBy(p => p.Created)
+            .Take(10)
+            .Include(p => p.Views)
+            .Include(p => p.Likes)
+            .Include(p => p.Comments)
+            .ToListAsync();
+        return Followers.Union(Posts).ToList();
     }
 
     public async Task<List<Post>> GetFavoritePosts(User user)
@@ -188,6 +210,17 @@ public class PostService : IPostService
             await _minioClient.RemoveObjectAsync(removeArgs);
         }
         _context.Remove(post);
+        await _context.SaveChangesAsync();
+    }
+
+    public async void ViewPost(string guid, User user)
+    {
+        var post = await _context.Posts.FirstOrDefaultAsync(p => p.MediaGuid == guid);
+
+        if (post == null)
+            return;
+        var view = new View() { PostId = post.Id, UserId = user.Id };
+        await _context.Views.AddAsync(view);
         await _context.SaveChangesAsync();
     }
 }

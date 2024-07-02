@@ -59,7 +59,8 @@ public class PostController : ControllerBase
     [HttpGet("[action]")]
     public async Task<IActionResult> GetRecommendedPosts()
     {
-        return Ok((await _postService.GetPosts()));
+        User user = await Request.GetUserAsync();
+        return Ok((await _postService.GetPosts(user)));
     }
 
     [HttpGet("[action]/{guid}")]
@@ -80,6 +81,7 @@ public class PostController : ControllerBase
     {
         try
         {
+            var user = await Request.GetUserAsync();
             return await _postService.GetMedia(guid);
         }
         catch (Exception e)

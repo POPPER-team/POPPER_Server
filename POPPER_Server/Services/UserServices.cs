@@ -27,8 +27,12 @@ public class UserServices : IUserServices
     private readonly IConfiguration _configuration;
     private readonly IMapper _mapper;
 
-    public UserServices(PopperdbContext context, IPasswordHasher<User> passwordHasher, IConfiguration configuration,
-        IMapper mapper)
+    public UserServices(
+        PopperdbContext context,
+        IPasswordHasher<User> passwordHasher,
+        IConfiguration configuration,
+        IMapper mapper
+    )
     {
         _mapper = mapper;
         _context = context;
@@ -44,7 +48,8 @@ public class UserServices : IUserServices
     public async Task<User> GetUserAsync(string userGuid)
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
-        if (user == null) throw new Exception("User not found");
+        if (user == null)
+            throw new Exception("User not found");
         return user;
     }
 
@@ -58,9 +63,15 @@ public class UserServices : IUserServices
     {
         User user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-        if (user == null) throw new Exception("Login failed");
-        PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
-        if (result == PasswordVerificationResult.Failed) throw new Exception("Login failed");
+        if (user == null)
+            throw new Exception("Login failed");
+        PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(
+            user,
+            user.Password,
+            password
+        );
+        if (result == PasswordVerificationResult.Failed)
+            throw new Exception("Login failed");
         return new TokensDto()
         {
             JwtToken = await TokenHelper.GenerateJwtToken(user),
@@ -88,6 +99,11 @@ public class UserServices : IUserServices
     /// <returns>Newly created user </returns>
     public async Task<User> RegisterUserAsync(NewUserDto user)
     {
+        User? existingUser = await _context.Users.FirstOrDefaultAsync(u =>
+            u.Username == user.Username
+        );
+        if (existingUser != null)
+            throw new Exception("User already exists");
         User newUser = _mapper.Map<User>(user);
         newUser.Password = _passwordHasher.HashPassword(newUser, user.Password);
         await _context.Users.AddAsync(newUser);
@@ -104,12 +120,15 @@ public class UserServices : IUserServices
     public async Task<IEnumerable<User>> SearchUserAsync(string searchString)
     {
         string s = searchString.Trim().ToLower();
-        List<User> users = await _context.Users.Where(user =>
-            user.Username.ToLower().Contains(s)
-            || user.FirstName.Contains(s)
-            || user.LastName.Contains(s)
-        ).ToListAsync();
+        List<User> users = await _context
+            .Users.Where(user =>
+                user.Username.ToLower().Contains(s)
+                || user.FirstName.Contains(s)
+                || user.LastName.Contains(s)
+            )
+            .ToListAsync();
 
         return users;
     }
 }
+
