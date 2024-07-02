@@ -78,14 +78,17 @@ public class PostActions : IPostActions
         var post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
         if (post == null)
             throw new Exception("post not found");
-        var save = post.Saveds.FirstOrDefault(s => s.UserId == user.Id);
+        var save = _context
+            .Posts.Where(p => p.Guid == guid)
+            .SelectMany(p => p.Saveds)
+            .FirstOrDefault(s => s.UserId == user.Id);
         if (save != null)
         {
             _context.Saveds.Remove(save);
         }
         else
         {
-            var newSave = new Saved { Post = post, User = user };
+            var newSave = new Saved { PostId = post.Id, UserId = user.Id };
             await _context.Saveds.AddAsync(newSave);
         }
         await _context.SaveChangesAsync();

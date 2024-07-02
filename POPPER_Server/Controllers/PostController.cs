@@ -121,7 +121,7 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpGet("[action]")]
-    public async Task<IActionResult> GetFavorites()
+    public async Task<IActionResult> GetSaved()
     {
         User user = await Request.GetUserAsync();
 

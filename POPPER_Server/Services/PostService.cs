@@ -145,11 +145,14 @@ public class PostService : IPostService
     public async Task<List<Post>> GetFavoritePosts(User user)
     {
         List<Post> favoritePosts = await _context
-            .Users.AsNoTracking()
-            .Where(u => u.Id == user.Id)
-            .Include(u => u.Saveds)
-            .ThenInclude(s => s.Post)
-            .SelectMany(u => u.Saveds)
+            .Saveds.AsNoTracking()
+            .Where(s => s.User.Id == user.Id)
+            .Include(s => s.Post)
+            .ThenInclude(p => p.Saveds)
+            .Include(p => p.Post)
+            .ThenInclude(p => p.Comments)
+            .Include(p => p.Post)
+            .ThenInclude(p => p.Likes)
             .Select(s => s.Post)
             .OrderBy(p => p.Created)
             .ToListAsync();
