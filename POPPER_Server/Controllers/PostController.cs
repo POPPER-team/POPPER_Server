@@ -60,7 +60,7 @@ public class PostController : ControllerBase
     public async Task<IActionResult> GetRecommendedPosts()
     {
         User user = await Request.GetUserAsync();
-        return Ok((await _postService.GetPosts(user)));
+        return Ok(_mapper.Map<List<PostDto>>(await _postService.GetPosts(user)));
     }
 
     [HttpGet("[action]/{guid}")]

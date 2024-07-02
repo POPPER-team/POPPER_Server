@@ -142,7 +142,7 @@ public class PostService : IPostService
         var Posts = await _context
             .Posts.AsNoTracking()
             .Where(u => !u.Views.Any(v => v.UserId == user.Id))
-            .OrderBy(p => p.Views)
+            .OrderBy(p => p.Views.Count)
             .ThenBy(p => p.Created)
             .Take(10)
             .Include(p => p.Views)
@@ -151,17 +151,23 @@ public class PostService : IPostService
             .ToListAsync();
 
         var Followers = await _context
-            .Posts.AsNoTracking()
-            .Where(u => !u.Views.Any(v => v.UserId == user.Id))
-            //            .Where(u => u.User.FollowingUsers.)
-            .OrderBy(p => p.Views)
+            .Followings.Where(u => u.User.Id == user.Id)
+            .Select(u => u.FollowingNavigation)
+            .ToListAsync();
+
+        var followerPosts =  _context
+            .Posts
+            .OrderBy(p => p.Views.Count)
             .ThenBy(p => p.Created)
             .Take(10)
             .Include(p => p.Views)
             .Include(p => p.Likes)
             .Include(p => p.Comments)
-            .ToListAsync();
-        return Followers.Union(Posts).ToList();
+            .ToList()
+            .Where(p => Followers.Any(u => u.Id == p.UserId))
+            .ToList();
+
+        return followerPosts.Union(Posts).ToList();
     }
 
     public async Task<List<Post>> GetFavoritePosts(User user)
