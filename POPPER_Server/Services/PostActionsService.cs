@@ -23,24 +23,30 @@ public class PostActions : IPostActions
 
     public Task<string> GetShareLink(string guid)
     {
+        //        return "https://localhost:5029/Post/get";
         throw new NotImplementedException();
     }
 
     public async Task<int> LikePost(string guid, User user)
     {
         //TODO check if works
-        var post = await _context.Posts.FirstOrDefaultAsync(p => p.Guid == guid);
+        var post = await _context
+            .Posts.Include(p => p.Likes)
+            .FirstOrDefaultAsync(p => p.Guid == guid);
         if (post == null)
             throw new Exception("post not fund");
         //TODO test if works
-        var like = post.Likes.FirstOrDefault(l => l.UserId == user.Id);
+        var like = _context
+            .Posts.Where(p => p.Guid == guid)
+            .SelectMany(p => p.Likes)
+            .FirstOrDefault(l => l.UserId == user.Id);
         if (like != null)
         {
             _context.Likes.Remove(like);
         }
         else
         {
-            var newLike = new Like { User = user, Post = post };
+            var newLike = new Like { UserId = user.Id, PostId = post.Id };
             await _context.Likes.AddAsync(newLike);
         }
         await _context.SaveChangesAsync();

@@ -160,6 +160,9 @@ public class PostService : IPostService
     {
         List<Post> userPosts = await _context
             .Posts.AsNoTracking()
+            .Include(p => p.Likes)
+            .Include(p => p.Comments)
+            .Include(p => p.Saveds)
             .Where(p => p.User.Guid == guid)
             .OrderBy(p => p.Created)
             .ToListAsync();
