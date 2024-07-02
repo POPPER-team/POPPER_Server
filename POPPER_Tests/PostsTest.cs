@@ -12,50 +12,59 @@ public class PostsTest
     {
         _postService = new Mock<IPostService>();
     }
-//TODO ovo izgleda ok samo sto trebas prebaciti na IPostActions kada mergam to s devom
+
     [Fact]
     public async Task LikePostTest()
     {
         var user = new User { Id = 1, Username = "gordan" };
         var post = new Post { Id = 1 };
         var expected = true;
-
-        //        _postService.Setup(x => x.LikePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
-        //          .ReturnsAsync(expected);
-
-        //    var result = await _postService.Object.LikePostAsync(user, post);
-
-        //  Assert.Equal(expected, result);
+        
+        _postService.Setup(x => x.LikePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
+            .ReturnsAsync(expected);
+        
+        var result = await _postService.Object.LikePostAsync(user, post); 
+        
+        Assert.Equal(expected, result);
+        
     }
 
+    
     [Fact]
+    
     public async Task UnlikePostTest()
     {
         var user = new User { Id = 1, Username = "gordan" };
         var post = new Post { Id = 1 };
         var expected = true;
+        
+        _postService.Setup(x => x.UnlikePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
+            .ReturnsAsync(expected);
+        
+        var result = await _postService.Object.UnlikePostAsync(user, post); 
+        
+        Assert.Equal(expected, result);
 
-        // _postService.Setup(x => x.UnlikePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
-        //   .ReturnsAsync(expected);
-
-        //var result = await _postService.Object.UnlikePostAsync(user, post);
-
-        //  Assert.Equal(expected, result);
+        
     }
 
+    
     [Fact]
+    
     public async Task SharePostTest()
     {
         var user = new User { Id = 1, Username = "gordan" };
         var post = new Post { Id = 1 };
         var expected = true;
-
-        //_postService.Setup(x => x.SharePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
-        //  .ReturnsAsync(expected);
-
-        //var result = await _postService.Object.SharePostAsync(user, post);
-
-        // Assert.Equal(expected, result);
+        
+        _postService.Setup(x => x.SharePostAsync(It.IsAny<User>(), It.IsAny<Post>()))
+            .ReturnsAsync(expected);
+        
+        var result = await _postService.Object.SharePostAsync(user, post);
+        
+        Assert.Equal(expected, result);
+        
     }
-}
 
+ 
+}
