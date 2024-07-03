@@ -13,4 +13,6 @@ public class UserDetailsDto
     public string WebLink { get; set; }
     public string PreferredUnits { get; set; }
     public string Language { get; set; }
+    public int Following { get; set; }
+    public int Followers { get; set; }
 }

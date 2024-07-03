@@ -44,7 +44,7 @@ public class PostService : IPostService
         newPost.UserId = user.Id;
         await _context.Posts.AddAsync(newPost);
         await _context.SaveChangesAsync();
-        return newPost;
+        return await _context.Posts.Include(p => p.User).FirstOrDefaultAsync(p => p.Guid == newPost.Guid);
     }
 
     public async Task UploadMedaToPost(string postGuid, User user, FileUploadDto file)
@@ -139,17 +139,6 @@ public class PostService : IPostService
 
     public async Task<List<Post>> GetPosts(User user)
     {
-        var Posts = await _context
-            .Posts.AsNoTracking()
-            .Where(u => !u.Views.Any(v => v.UserId == user.Id))
-            .OrderBy(p => p.Views.Count)
-            .ThenBy(p => p.Created)
-            .Take(10)
-            .Include(p => p.Views)
-            .Include(p => p.Likes)
-            .Include(p => p.Comments)
-            .ToListAsync();
-
         var Followers = await _context
             .Followings.Where(u => u.User.Id == user.Id)
             .Select(u => u.FollowingNavigation)
@@ -157,15 +146,33 @@ public class PostService : IPostService
 
         var followerPosts =  _context
             .Posts
-            .OrderBy(p => p.Views.Count)
+            .OrderByDescending(p => p.Views.Count)
             .ThenBy(p => p.Created)
             .Take(10)
+            .Include(p => p.User)
             .Include(p => p.Views)
             .Include(p => p.Likes)
             .Include(p => p.Comments)
             .ToList()
             .Where(p => Followers.Any(u => u.Id == p.UserId))
             .ToList();
+
+        if (followerPosts.Count >= 10)
+        {
+            return followerPosts;
+        }
+        
+        var Posts = await _context
+            .Posts.AsNoTracking()
+            .Where(u => !u.Views.Any(v => v.UserId == user.Id))
+            .OrderByDescending(p => p.Views.Count)
+            .ThenBy(p => p.Created)
+            .Take(10 - followerPosts.Count)
+            .Include(p => p.User)
+            .Include(p => p.Views)
+            .Include(p => p.Likes)
+            .Include(p => p.Comments)
+            .ToListAsync();
 
         return followerPosts.Union(Posts).ToList();
     }
@@ -182,7 +189,7 @@ public class PostService : IPostService
             .Include(p => p.Post)
             .ThenInclude(p => p.Likes)
             .Select(s => s.Post)
-            .OrderBy(p => p.Created)
+            .OrderByDescending(p => p.Created)
             .ToListAsync();
         return favoritePosts;
     }
@@ -195,7 +202,7 @@ public class PostService : IPostService
             .Include(p => p.Comments)
             .Include(p => p.Saveds)
             .Where(p => p.User.Guid == guid)
-            .OrderBy(p => p.Created)
+            .OrderByDescending(p => p.Created)
             .ToListAsync();
         return userPosts;
     }

@@ -42,10 +42,11 @@ public class UserDetailsController : ControllerBase
         return Ok(_mapper.Map<List<UserDto>>(await _userServices.SearchUserAsync(searchString)));
     }
     //TODO looks like the file uplod does not work
+    [RequestSizeLimit(100_000_000)] // Set the maximum request body size to 100 MB
     [HttpPut("[action]")]
     public async Task<IActionResult> UploadProfilePicture([FromForm] FileUploadDto file)
     {
-        bool success = await _userProfile.SetProfilePicture((await Request.GetUserAsync()), file);
+        bool success = await _userProfile.SetProfilePicture((await Request.GetUserAsync()), file.File);
         if (!success) return BadRequest();
         return Ok();
     }

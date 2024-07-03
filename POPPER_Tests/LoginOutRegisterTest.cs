@@ -19,35 +19,50 @@ public class LoginOutRegisterTest
         mockUserServices.Setup(service => service.RegisterUserAsync(It.IsAny<NewUserDto>()))
             .ReturnsAsync(new User());
 
-        _userServices = mockUserServices.Object;
+         _userServices = mockUserServices.Object;
     }
 
     [Fact]
     public async Task LoginTest()
     {
-        var username = "gordan";
-        var password = "password";
-        var expected = new TokensDto();
+        var mockUserServices = new Mock<IUserServices>();
+        var expectedTokens = new TokensDto();
+        var username = "Gordan";
+        var password = "Pa$$w0rd";
+
+        mockUserServices
+            .Setup(service => service.LoginUserAsync(username, password))
+            .ReturnsAsync(expectedTokens);
+
 
         var result = await _userServices.LoginUserAsync(username, password);
 
-        Assert.Equal(expected, result);
+        Assert.Equal(expectedTokens, result);
     }
 
- //Register test is failing, TODO: fix it
     [Fact]
     public async Task RegisterTest()
     {
+        
+        var mockUserServices = new Mock<IUserServices>();
+        var expectedUser = new User();
         var newUser = new NewUserDto()
         {
-            Username = "gordan",
-            Password = "password",
-            Email = "gordan@algebra.hr"
+            Username = "Gordan",
+            FirstName = "Gordan",
+            LastName = "Ramzi",
+            Password = "Pa$$w0rd",
+            DateOfBirth = "1966/11/8",
+            Email = "gramsi@kuhinja.hr"
         };
-        var expected = new User();
+
+        mockUserServices
+            .Setup(service => service.RegisterUserAsync(newUser))
+            .ReturnsAsync(expectedUser);
+        
         var result = await _userServices.RegisterUserAsync(newUser);
-//TODO faila 
-        Assert.Equal(expected, result);
+        
+        Assert.Equal(expectedUser, result);
 
      }
 

@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -99,7 +100,15 @@ builder.Services.AddSwaggerGen(option =>
     );
 });
 
+builder.Services.Configure<FormOptions>(x =>
+{
+    x.ValueLengthLimit = int.MaxValue;
+    x.MultipartBodyLengthLimit = int.MaxValue;// In case of multipart
+});
+
+
 WebApplication? app = builder.Build();
+
 
 IServiceProvider services = app.Services.CreateScope().ServiceProvider;
 TokenHelper.ProvideService(services);

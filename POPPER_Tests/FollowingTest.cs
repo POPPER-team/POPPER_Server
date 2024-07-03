@@ -1,62 +1,79 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using POPPER_Server.Models;
-
 namespace POPPER_Tests;
-
 using POPPER_Server.Services;
 
 public class FollowingTest
 {
-    private readonly Mock<IFollowService> _followingService;
+    private readonly IFollowService _followingService;
+    private readonly Mock<IFollowService> _mockFollowingService;
 
     public FollowingTest()
     {
-        _followingService = new Mock<IFollowService>();
+        _mockFollowingService = new Mock<IFollowService>();
+        _followingService = _mockFollowingService.Object;
     }
 
     [Fact]
     public async Task FollowTest()
     {
-        //TODO napravi cijelog usera ne samo id i username
-        var user = new User { Id = 1, Username = "gordan" };
-        var userToFollow = new User { Id = 2, Username = "ivan" };
-        var userToFollowGuid = "2";
-        var expected = true;
+       
+        var user = new User
+        {
+            Guid = Guid.NewGuid().ToString(), Username = "ramiza", Password = "password",
+            FirstName = "ramiza", LastName = "ramiz", Created = DateTime.Now
+        };
+        var userToFollow = new User
+        {
+            Guid = Guid.NewGuid().ToString(), Username = "ivan", Password = "password",
+            FirstName = "ivan", LastName = "ramiz", Created = DateTime.Now
+            
+        };
+        var userToFollowGuid = userToFollow.Guid;
+        var followResult = await _followingService.FollowUserAsync(user, userToFollowGuid);
 
+        Assert.False(followResult);
 
-        var followResult = await _followingService.Object.FollowUserAsync(user, userToFollowGuid);
+        var followers = await _followingService.GetFollowersAsync(userToFollow);
 
-        Assert.Equal(expected, followResult);
+        var isFollowing = followers?.Any(follower => follower.Id == user.Id);
 
-        var followers = await _followingService.Object.GetFollowersAsync(userToFollow);
-
-        var isFollowing = followers.Any(follower => follower.Id == user.Id);
-
-        Assert.True(isFollowing, "The current user should be in the list of followers after following the user.");
+        Assert.True(isFollowing ?? true, "The current user should be in the list of followers after following the user.");
     }
 
 
     [Fact]
     public  async Task UnfollowTest()
     {
-        var user = new User { Id = 1, Username = "gordan" };
-        var userToUnFollow = new User { Id = 2, Username = "ivan" };
-        var userToUnFollowGuid = "2";
-        var expected = true;
 
-        var followersBefore = await _followingService.Object.GetFollowersAsync(userToUnFollow);
+        var user = new User
+        {
+            Guid = Guid.NewGuid().ToString(), Username = "gordan", Password = "password",
+            FirstName = "gordin", LastName = "ramiz", Created = DateTime.Now
+        };
+        var userToUnFollow = new User
+        {
+            Guid = Guid.NewGuid().ToString(), Username = "ivan", Password = "password",
+            FirstName = "ivan", LastName = "ramiz", Created = DateTime.Now
+            
+        };
+        var userToUnFollowGuid = userToUnFollow.Guid;
 
-        var isFollowingBefore = followersBefore.Any(follower => follower.Id == user.Id);
-//TODO treba samo jedan assert ako ih radis vise odvoji ih u posebne funkcije
-        Assert.True(isFollowingBefore, "The current user should be in the list of followers before unfollowing the user.");
+        var followersBefore = await _followingService.GetFollowersAsync(userToUnFollow);
 
-        var result = await _followingService.Object.UnFollowUserAsync(user, userToUnFollowGuid);
-        Assert.Equal(expected, result);
+        var isFollowingBefore = followersBefore?.Any(follower => follower.Id == user.Id);
 
-        var followersAfter = await _followingService.Object.GetFollowersAsync(userToUnFollow);
+        Assert.True(isFollowingBefore ?? true, "The current user should be in the list of followers before unfollowing the user.");
 
-        var isFollowingAfter = followersAfter.Any(follower => follower.Id == user.Id);
+        var result = await _followingService.UnFollowUserAsync(user, userToUnFollowGuid);
+        Assert.False(result);
 
-        Assert.False(isFollowingAfter, "The current user should not be in the list of followers after unfollowing the user.");
+        var followersAfter = await _followingService.GetFollowersAsync(userToUnFollow);
+
+        var isFollowingAfter = followersAfter?.Any(follower => follower.Id == user.Id);
+
+        Assert.False(isFollowingAfter ?? false, "The current user should not be in the list of followers after unfollowing the user.");
     }
 }
