@@ -112,6 +112,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.SeedUsers();
+    await app.CreateBucketsAsync();
 }
 
 app.UseHttpsRedirection();
