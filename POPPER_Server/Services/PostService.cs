@@ -44,7 +44,7 @@ public class PostService : IPostService
         newPost.UserId = user.Id;
         await _context.Posts.AddAsync(newPost);
         await _context.SaveChangesAsync();
-        return newPost;
+        return await _context.Posts.Include(p => p.User).FirstOrDefaultAsync(p => p.Guid == newPost.Guid);
     }
 
     public async Task UploadMedaToPost(string postGuid, User user, FileUploadDto file)
