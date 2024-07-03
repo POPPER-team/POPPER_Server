@@ -34,9 +34,9 @@ public class PostController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-
+    [RequestFormLimits(KeyLengthLimit = int.MaxValue,ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
     [Authorize]
-    [HttpPost("[action]/{guid}")]
+    [HttpPut("[action]/{guid}")]
     public async Task<IActionResult> UploadPostMedia(
         [FromRoute] string guid,
         [FromForm] FileUploadDto file
