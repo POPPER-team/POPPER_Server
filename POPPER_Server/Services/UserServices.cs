@@ -136,19 +136,26 @@ public class UserServices : IUserServices
     
     public async Task<bool> ChangePasswordAsync(string oldPassword, string newPassword, User user)
     {
-   
-        var verifyPasswordResult = _passwordHasher.VerifyHashedPassword(user,user.Password, oldPassword);
-        if (verifyPasswordResult == PasswordVerificationResult.Failed)
+
+        try
         {
-            throw new Exception("Old password is incorrect");
-        }
+            var verifyPasswordResult = _passwordHasher.VerifyHashedPassword(user,user.Password, oldPassword);
+            if (verifyPasswordResult == PasswordVerificationResult.Failed)
+            {
+                throw new Exception("Old password is incorrect");
+            }
 
-        user.Password = _passwordHasher.HashPassword(user, newPassword);
+            user.Password = _passwordHasher.HashPassword(user, newPassword);
         
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync();
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
 
-        return true;
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
 }
