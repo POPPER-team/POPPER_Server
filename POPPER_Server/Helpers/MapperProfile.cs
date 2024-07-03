@@ -27,8 +27,10 @@ public class MapperProfile : Profile
             .ForMember(
                 dest => dest.DateOfBirth,
                 opt => opt.MapFrom(src => src.DateOfBirth.ToString())
-            );
-
+            )
+            .ForMember(dest => dest.Followers, opt => opt.MapFrom(src => src.FollowingFollowingNavigations.Count()))
+            .ForMember(dest => dest.Following, opt => opt.MapFrom(src => src.FollowingUsers.Count()));
+            
         CreateMap<User, UserDto>();
         CreateMap<UserDto, User>()
             .ForMember(dest => dest.Guid, opt => opt.Ignore())
