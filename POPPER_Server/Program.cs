@@ -101,6 +101,7 @@ builder.Services.AddSwaggerGen(option =>
 
 WebApplication? app = builder.Build();
 
+
 IServiceProvider services = app.Services.CreateScope().ServiceProvider;
 TokenHelper.ProvideService(services);
 UserHelper.ProvideService(services);
