@@ -99,6 +99,13 @@ builder.Services.AddSwaggerGen(option =>
     );
 });
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null; // Remove the overall request body size limit
+    //options.Limits.= 200_000_000; // Set the multipart body length limit to 200 MB
+});
+
+
 WebApplication? app = builder.Build();
 
 
