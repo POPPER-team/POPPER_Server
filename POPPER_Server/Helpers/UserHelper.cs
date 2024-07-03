@@ -21,7 +21,8 @@ public static class UserHelper
 
         string userGuid = RetrieveFromRequest("UserGuid", request);
         if (userGuid == null) throw new Exception("User not found");
-        User user = await _context.Users.FirstOrDefaultAsync(u => u.Guid == userGuid);
+        User user = await _context.Users.Include(u => u.FollowingUsers)
+            .Include(u => u.FollowingFollowingNavigations).FirstOrDefaultAsync(u => u.Guid == userGuid);
         if (user == null) throw new Exception("User not found");
         return user;
     }
