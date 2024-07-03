@@ -9,7 +9,7 @@ namespace POPPER_Server.Services;
 
 public interface IUserProfileService
 {
-    public Task<bool> SetProfilePicture(User user, FileUploadDto picture);
+    public Task<bool> SetProfilePicture(User user, IFormFile picture);
     public Task<FileContentResult> GetProfilePicture(User user);
 }
 
@@ -24,7 +24,7 @@ public class UserProfileService : IUserProfileService
         _minioClient = minioClient;
     }
 
-    public async Task<bool> SetProfilePicture(User user, FileUploadDto picture)
+    public async Task<bool> SetProfilePicture(User user, IFormFile picture)
     {
         try
         {
@@ -32,14 +32,14 @@ public class UserProfileService : IUserProfileService
             string filePath = Path.GetTempFileName();
             await using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await picture.File.CopyToAsync(stream);
+                await picture.CopyToAsync(stream);
             }
 
             PutObjectArgs putObject = new PutObjectArgs()
                 .WithBucket(BucketName)
                 .WithObject(user.Guid)
                 .WithFileName(filePath)
-                .WithContentType(picture.File.ContentType);
+                .WithContentType(picture.ContentType);
 
             PutObjectResponse result = await _minioClient.PutObjectAsync(putObject).ConfigureAwait(true);
             File.Delete(filePath);
