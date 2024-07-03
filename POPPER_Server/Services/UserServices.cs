@@ -15,6 +15,7 @@ public interface IUserServices
     public Task<User> RegisterUserAsync(NewUserDto user);
     public Task<IEnumerable<User>> SearchUserAsync(string searchString);
     public Task<string> RefreshJwtTokenAsync(string refreshToken);
+    public Task<bool> ChangePasswordAsync(string oldPassword, string newPassword, User user);
 }
 
 /// <summary>
@@ -130,5 +131,23 @@ public class UserServices : IUserServices
 
         return users;
     }
+    
+    public async Task<bool> ChangePasswordAsync(string oldPassword, string newPassword, User user)
+    {
+   
+        var verifyPasswordResult = _passwordHasher.VerifyHashedPassword(user,user.Password, oldPassword);
+        if (verifyPasswordResult == PasswordVerificationResult.Failed)
+        {
+            throw new Exception("Old password is incorrect");
+        }
+
+        user.Password = _passwordHasher.HashPassword(user, newPassword);
+        
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
 }
 

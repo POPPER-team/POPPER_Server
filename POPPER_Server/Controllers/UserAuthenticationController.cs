@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using POPPER_Server.Dtos;
+using POPPER_Server.Helpers;
 using POPPER_Server.Services;
 
 namespace POPPER_Server.Controllers;
@@ -44,5 +45,21 @@ public class UserAuthenticationController : ControllerBase
         throw new NotImplementedException();
         var newJwtToken = await _userServices.RefreshJwtTokenAsync(refreshToken);
         return Ok(newJwtToken);
+    }
+    
+    [HttpPost("[action]")]
+    public async Task<IActionResult> ChangePassword([FromQuery] string oldPassword, string newPassword)
+    {
+        try
+        { 
+            var user = await Request.GetUserAsync();
+            await _userServices.ChangePasswordAsync(oldPassword, newPassword, user);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest();
+        }
+        
     }
 }
